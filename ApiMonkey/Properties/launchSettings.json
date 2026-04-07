@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "ApiMonkey (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "ApiMonkey (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}
