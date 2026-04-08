@@ -10,6 +10,6 @@ public sealed class RequestRootEntry(
     ChangingValueContainer container,
     SettingsPageViewModel owner)
 {
-  public ChangingValueContainer Container { get; } = container;
-  public SettingsPageViewModel Owner { get; } = owner;
+    public ChangingValueContainer Container { get; } = container;
+    public SettingsPageViewModel Owner { get; } = owner;
 }

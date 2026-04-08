@@ -4,12 +4,12 @@ namespace Makapi.Pages;
 
 public sealed partial class SettingsPage : Page
 {
-  public SettingsPageViewModel ViewModel { get; } = new();
+    public SettingsPageViewModel ViewModel { get; } = new();
 
-  public SettingsPage()
-  {
-    InitializeComponent();
+    public SettingsPage()
+    {
+        InitializeComponent();
 
-    Loaded += (_, _) => ViewModel.XamlRoot = XamlRoot;
-  }
+        Loaded += (_, _) => ViewModel.XamlRoot = XamlRoot;
+    }
 }

@@ -2,5 +2,5 @@
 
 internal interface IMenuItemAction
 {
-  void Execute();
+    void Execute();
 }

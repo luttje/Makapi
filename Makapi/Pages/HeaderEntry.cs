@@ -10,6 +10,6 @@ public sealed class HeaderEntry(
     Header header,
     WebRequestPageViewModel owner)
 {
-  public Header Header { get; } = header;
-  public WebRequestPageViewModel Owner { get; } = owner;
+    public Header Header { get; } = header;
+    public WebRequestPageViewModel Owner { get; } = owner;
 }

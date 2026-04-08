@@ -18,428 +18,428 @@ using System.Threading.Tasks;
 
 namespace Makapi
 {
-  public sealed partial class MainWindow : Window
-  {
-    private readonly ObservableCollection<NavigationViewItemBase> _menuItems = [];
-    private readonly Dictionary<string, NavigationViewItem> _collectionMenuItems = [];
-    private NavigationViewItem? _contextMenuItem;
-    private bool _noAutoOpen = false;
-    private readonly RequestStore _requestStore;
-    private readonly IMessenger _messenger;
-
-    public MainWindow()
+    public sealed partial class MainWindow : Window
     {
-      InitializeComponent();
+        private readonly ObservableCollection<NavigationViewItemBase> _menuItems = [];
+        private readonly Dictionary<string, NavigationViewItem> _collectionMenuItems = [];
+        private NavigationViewItem? _contextMenuItem;
+        private bool _noAutoOpen = false;
+        private readonly RequestStore _requestStore;
+        private readonly IMessenger _messenger;
 
-      _requestStore = App.Services.GetRequiredService<RequestStore>();
-      _messenger = App.Services.GetRequiredService<IMessenger>();
-
-      _messenger.Register<SettingsChangedMessage>(this, async (r, m) => await RefreshMenuItemsAsync());
-
-      ExtendsContentIntoTitleBar = true;
-      SetTitleBar(TitleBar);
-
-      _requestStore.RequestAdded += RequestStore_RequestAdded;
-      _requestStore.RequestRemoved += RequestStore_RequestRemoved;
-      _requestStore.CollectionAdded += RequestStore_CollectionAdded;
-      _requestStore.CollectionRemoved += RequestStore_CollectionRemoved;
-    }
-
-    private void RequestStore_RequestAdded(Request request)
-    {
-      NavigationViewItem menuItem;
-
-      if (request.Collection != null)
-      {
-        var collectionMenuItem = _collectionMenuItems.GetValueOrDefault(request.Collection.Id);
-
-        if (collectionMenuItem == null)
-          throw new ArgumentNullException(nameof(collectionMenuItem));
-
-        menuItem = AddRequestMenuItem(request, (IList<object>?)collectionMenuItem.MenuItems);
-
-      }
-      else
-      {
-        menuItem = AddRequestMenuItem(request);
-      }
-
-      if (!_noAutoOpen)
-        OpenMenuItem(menuItem);
-    }
-
-    private void RequestStore_RequestRemoved(Request request)
-    {
-      // Find the menu item for the request and remove it
-      var menuItem = _menuItems.OfType<NavigationViewItem>()
-          .FirstOrDefault(item => item.Tag is FrameOpener opener &&
-                                  opener.PageType == typeof(WebRequestPage) &&
-                                  opener.Parameter as string == request.Id);
-      if (menuItem != null)
-      {
-        _menuItems.Remove(menuItem);
-      }
-      else
-      {
-        // If not found in the main menu, check within collections
-        foreach (var collectionMenuItem in _collectionMenuItems.Values)
+        public MainWindow()
         {
-          var requestMenuItem = collectionMenuItem.MenuItems.OfType<NavigationViewItem>()
-              .FirstOrDefault(item => item.Tag is FrameOpener opener &&
-                                      opener.PageType == typeof(WebRequestPage) &&
-                                      opener.Parameter as string == request.Id);
-          if (requestMenuItem != null)
-          {
-            collectionMenuItem.MenuItems.Remove(requestMenuItem);
-            break;
-          }
-        }
-      }
-    }
+            InitializeComponent();
 
-    private void RequestStore_CollectionAdded(RequestCollection collection)
-    {
-      var menuItem = AddCollectionMenuItem(collection);
+            _requestStore = App.Services.GetRequiredService<RequestStore>();
+            _messenger = App.Services.GetRequiredService<IMessenger>();
 
-      if (!_noAutoOpen)
-        OpenMenuItem(menuItem);
-    }
+            _messenger.Register<SettingsChangedMessage>(this, async (r, m) => await RefreshMenuItemsAsync());
 
-    private void RequestStore_CollectionRemoved(RequestCollection collection)
-    {
-      // Find the menu item for the collection and remove it
-      var menuItem = _collectionMenuItems.GetValueOrDefault(collection.Id);
-      if (menuItem != null)
-      {
-        _menuItems.Remove(menuItem);
-        _collectionMenuItems.Remove(collection.Id);
-      }
-    }
+            ExtendsContentIntoTitleBar = true;
+            SetTitleBar(TitleBar);
 
-    private NavigationViewItem AddRequestMenuItem(Request request, IList<object>? parent = null)
-    {
-      var menuItem = new NavigationViewItem
-      {
-        Content = request.Name,
-        Tag = new FrameOpener(MainFrame, typeof(WebRequestPage), request.Id),
-        Icon = new SymbolIcon(Symbol.Document),
-      };
-      menuItem.DataContext = menuItem;
-
-      request.PropertyChanged += (s, e) =>
-      {
-        if (e.PropertyName == nameof(Request.Name))
-        {
-          menuItem.Content = request.Name;
-        }
-      };
-
-      if (parent != null)
-        parent.Add(menuItem);
-      else
-        _menuItems.Add(menuItem);
-
-      return menuItem;
-    }
-
-    private NavigationViewItem AddCollectionMenuItem(RequestCollection collection)
-    {
-      var menuItem = new NavigationViewItem
-      {
-        Content = collection.Name,
-        Tag = new FrameOpener(MainFrame, typeof(CollectionPage), collection.Id),
-        Icon = new SymbolIcon(Symbol.Folder),
-      };
-
-      collection.PropertyChanged += (s, e) =>
-      {
-        if (e.PropertyName == nameof(RequestCollection.Name))
-        {
-          menuItem.Content = collection.Name;
-        }
-      };
-
-      menuItem.MenuItems.Add(new NavigationViewItem
-      {
-        Content = "New Request",
-        Tag = new CollectionRequestCreator(collection, _requestStore),
-        Icon = new SymbolIcon(Symbol.Add)
-      });
-
-      _menuItems.Add(menuItem);
-      menuItem.IsExpanded = true;
-
-      _collectionMenuItems.Add(collection.Id, menuItem);
-
-      return menuItem;
-    }
-
-    public async Task RefreshMenuItemsAsync()
-    {
-      _menuItems.Clear();
-      _collectionMenuItems.Clear();
-      RequestsNavigationView.FooterMenuItems.Clear();
-
-      _menuItems.Add(new NavigationViewItem
-      {
-        Content = "New Request",
-        Tag = new RequestCreator(_requestStore),
-        Icon = new SymbolIcon(Symbol.Add)
-      });
-
-      var settingsManager = App.Services.GetRequiredService<SettingsManager>();
-
-      _menuItems.Add(new NavigationViewItem
-      {
-        Content = "New Collection",
-        Tag = new CollectionCreator(RootGrid.XamlRoot, _requestStore, settingsManager),
-        Icon = new SymbolIcon(Symbol.NewFolder)
-      });
-
-      _menuItems.Add(new NavigationViewItemSeparator());
-
-      RequestsNavigationView.MenuItemsSource = _menuItems;
-
-      RequestsNavigationView.FooterMenuItems.Add(new NavigationViewItem
-      {
-        Content = "Settings",
-        Tag = new FrameOpener(MainFrame, typeof(SettingsPage)),
-        Icon = new SymbolIcon(Symbol.Setting)
-      });
-
-      _noAutoOpen = true;
-      await _requestStore.LoadRequestsFromDiskAsync();
-      _noAutoOpen = false;
-    }
-
-    private void RequestsNavigationView_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
-    {
-      var selectedItem = args.SelectedItem as NavigationViewItem;
-
-      if (selectedItem == null)
-        return;
-
-      if (selectedItem.Tag is not IMenuItemAction action)
-        return;
-
-      action.Execute();
-    }
-
-    private void OpenMenuItem(NavigationViewItem menuItem)
-    {
-      if (menuItem.Tag is IMenuItemAction action)
-        action.Execute();
-
-      RequestsNavigationView.SelectedItem = menuItem;
-    }
-
-    private void RequestsNavigationView_RightTapped(object sender, RightTappedRoutedEventArgs e)
-    {
-      var source = e.OriginalSource as DependencyObject;
-      _contextMenuItem = FindAncestor<NavigationViewItem>(source);
-
-      if (_contextMenuItem == null)
-        return;
-
-      ContextCommandBarFlyout.ShowAt(_contextMenuItem, new FlyoutShowOptions
-      {
-        ShowMode = FlyoutShowMode.Transient,
-        Placement = FlyoutPlacementMode.Left,
-        Position = e.GetPosition(_contextMenuItem)
-      });
-    }
-
-    private static T? FindAncestor<T>(DependencyObject? element) where T : DependencyObject
-    {
-      while (element != null)
-      {
-        if (element is T match)
-          return match;
-
-        element = VisualTreeHelper.GetParent(element);
-      }
-
-      return null;
-    }
-
-    private void ContextDeleteButton_Click(object sender, RoutedEventArgs e)
-    {
-      if (_contextMenuItem?.Tag is not FrameOpener opener)
-        return;
-
-
-      if (opener.Parameter is not string id)
-        return;
-
-      if (opener.PageType == typeof(WebRequestPage))
-      {
-        _requestStore.DeleteRequest(id);
-      }
-      else if (opener.PageType == typeof(CollectionPage))
-      {
-        _requestStore.DeleteCollection(id);
-      }
-    }
-
-    private void CtrlF_Invoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
-    {
-      RequestsSearchBox.Focus(FocusState.Programmatic);
-    }
-
-    private void TitleBar_PaneToggleRequested(TitleBar sender, object args)
-    {
-      RequestsNavigationView.IsPaneOpen = !RequestsNavigationView.IsPaneOpen;
-    }
-
-    private List<SearchResult> SearchRequests(string searchText)
-    {
-      if (string.IsNullOrWhiteSpace(searchText))
-        return [];
-
-      var results = new List<SearchResult>();
-      var searchLower = searchText.ToLower();
-
-      // Get all requests from root and collections
-      var allRequests = _requestStore.GetAllRequests();
-
-      foreach (var request in allRequests)
-      {
-        var matchScore = 0;
-        var matchDetails = new List<string>();
-
-        // Search in name (highest priority)
-        if (request.Name?.Contains(searchText, StringComparison.OrdinalIgnoreCase) == true)
-        {
-          matchScore += request.Name.StartsWith(searchText, StringComparison.OrdinalIgnoreCase) ? 100 : 50;
-          matchDetails.Add("name");
+            _requestStore.RequestAdded += RequestStore_RequestAdded;
+            _requestStore.RequestRemoved += RequestStore_RequestRemoved;
+            _requestStore.CollectionAdded += RequestStore_CollectionAdded;
+            _requestStore.CollectionRemoved += RequestStore_CollectionRemoved;
         }
 
-        // Search in URL
-        if (request.Url?.Contains(searchText, StringComparison.OrdinalIgnoreCase) == true)
+        private void RequestStore_RequestAdded(Request request)
         {
-          matchScore += 30;
-          matchDetails.Add("url");
+            NavigationViewItem menuItem;
+
+            if (request.Collection != null)
+            {
+                var collectionMenuItem = _collectionMenuItems.GetValueOrDefault(request.Collection.Id);
+
+                if (collectionMenuItem == null)
+                    throw new ArgumentNullException(nameof(collectionMenuItem));
+
+                menuItem = AddRequestMenuItem(request, (IList<object>?)collectionMenuItem.MenuItems);
+
+            }
+            else
+            {
+                menuItem = AddRequestMenuItem(request);
+            }
+
+            if (!_noAutoOpen)
+                OpenMenuItem(menuItem);
         }
 
-        // Search in headers
-        foreach (var header in request.Headers)
+        private void RequestStore_RequestRemoved(Request request)
         {
-          if (header.Name?.Contains(searchText, StringComparison.OrdinalIgnoreCase) == true ||
-              header.Value?.Contains(searchText, StringComparison.OrdinalIgnoreCase) == true)
-          {
-            matchScore += 10;
-            if (!matchDetails.Contains("headers"))
-              matchDetails.Add("headers");
-          }
+            // Find the menu item for the request and remove it
+            var menuItem = _menuItems.OfType<NavigationViewItem>()
+                .FirstOrDefault(item => item.Tag is FrameOpener opener &&
+                                        opener.PageType == typeof(WebRequestPage) &&
+                                        opener.Parameter as string == request.Id);
+            if (menuItem != null)
+            {
+                _menuItems.Remove(menuItem);
+            }
+            else
+            {
+                // If not found in the main menu, check within collections
+                foreach (var collectionMenuItem in _collectionMenuItems.Values)
+                {
+                    var requestMenuItem = collectionMenuItem.MenuItems.OfType<NavigationViewItem>()
+                        .FirstOrDefault(item => item.Tag is FrameOpener opener &&
+                                                opener.PageType == typeof(WebRequestPage) &&
+                                                opener.Parameter as string == request.Id);
+                    if (requestMenuItem != null)
+                    {
+                        collectionMenuItem.MenuItems.Remove(requestMenuItem);
+                        break;
+                    }
+                }
+            }
         }
 
-        // Search in body
-        if (request.Body?.Contains(searchText, StringComparison.OrdinalIgnoreCase) == true)
+        private void RequestStore_CollectionAdded(RequestCollection collection)
         {
-          matchScore += 20;
-          matchDetails.Add("body");
+            var menuItem = AddCollectionMenuItem(collection);
+
+            if (!_noAutoOpen)
+                OpenMenuItem(menuItem);
         }
 
-        if (matchScore > 0)
+        private void RequestStore_CollectionRemoved(RequestCollection collection)
         {
-          var collectionPrefix = request.Collection != null ? $"{request.Collection.Name} / " : "";
-          var displayText = $"{collectionPrefix}{request.Name ?? "Unnamed"} ({string.Join(", ", matchDetails)})";
-          results.Add(new SearchResult(request, displayText, matchScore));
+            // Find the menu item for the collection and remove it
+            var menuItem = _collectionMenuItems.GetValueOrDefault(collection.Id);
+            if (menuItem != null)
+            {
+                _menuItems.Remove(menuItem);
+                _collectionMenuItems.Remove(collection.Id);
+            }
         }
-      }
 
-      return results.OrderByDescending(r => r.MatchScore).ToList();
-    }
-
-    private void RequestsSearchBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
-    {
-      if (args.Reason == AutoSuggestionBoxTextChangeReason.UserInput)
-      {
-        var searchResults = SearchRequests(sender.Text);
-
-        if (searchResults.Count > 0)
+        private NavigationViewItem AddRequestMenuItem(Request request, IList<object>? parent = null)
         {
-          RequestsSearchBox.ItemsSource = searchResults;
+            var menuItem = new NavigationViewItem
+            {
+                Content = request.Name,
+                Tag = new FrameOpener(MainFrame, typeof(WebRequestPage), request.Id),
+                Icon = new SymbolIcon(Symbol.Document),
+            };
+            menuItem.DataContext = menuItem;
+
+            request.PropertyChanged += (s, e) =>
+            {
+                if (e.PropertyName == nameof(Request.Name))
+                {
+                    menuItem.Content = request.Name;
+                }
+            };
+
+            if (parent != null)
+                parent.Add(menuItem);
+            else
+                _menuItems.Add(menuItem);
+
+            return menuItem;
         }
-        else if (!string.IsNullOrWhiteSpace(sender.Text))
+
+        private NavigationViewItem AddCollectionMenuItem(RequestCollection collection)
         {
-          RequestsSearchBox.ItemsSource = new[]
-          {
+            var menuItem = new NavigationViewItem
+            {
+                Content = collection.Name,
+                Tag = new FrameOpener(MainFrame, typeof(CollectionPage), collection.Id),
+                Icon = new SymbolIcon(Symbol.Folder),
+            };
+
+            collection.PropertyChanged += (s, e) =>
+            {
+                if (e.PropertyName == nameof(RequestCollection.Name))
+                {
+                    menuItem.Content = collection.Name;
+                }
+            };
+
+            menuItem.MenuItems.Add(new NavigationViewItem
+            {
+                Content = "New Request",
+                Tag = new CollectionRequestCreator(collection, _requestStore),
+                Icon = new SymbolIcon(Symbol.Add)
+            });
+
+            _menuItems.Add(menuItem);
+            menuItem.IsExpanded = true;
+
+            _collectionMenuItems.Add(collection.Id, menuItem);
+
+            return menuItem;
+        }
+
+        public async Task RefreshMenuItemsAsync()
+        {
+            _menuItems.Clear();
+            _collectionMenuItems.Clear();
+            RequestsNavigationView.FooterMenuItems.Clear();
+
+            _menuItems.Add(new NavigationViewItem
+            {
+                Content = "New Request",
+                Tag = new RequestCreator(_requestStore),
+                Icon = new SymbolIcon(Symbol.Add)
+            });
+
+            var settingsManager = App.Services.GetRequiredService<SettingsManager>();
+
+            _menuItems.Add(new NavigationViewItem
+            {
+                Content = "New Collection",
+                Tag = new CollectionCreator(RootGrid.XamlRoot, _requestStore, settingsManager),
+                Icon = new SymbolIcon(Symbol.NewFolder)
+            });
+
+            _menuItems.Add(new NavigationViewItemSeparator());
+
+            RequestsNavigationView.MenuItemsSource = _menuItems;
+
+            RequestsNavigationView.FooterMenuItems.Add(new NavigationViewItem
+            {
+                Content = "Settings",
+                Tag = new FrameOpener(MainFrame, typeof(SettingsPage)),
+                Icon = new SymbolIcon(Symbol.Setting)
+            });
+
+            _noAutoOpen = true;
+            await _requestStore.LoadRequestsFromDiskAsync();
+            _noAutoOpen = false;
+        }
+
+        private void RequestsNavigationView_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
+        {
+            var selectedItem = args.SelectedItem as NavigationViewItem;
+
+            if (selectedItem == null)
+                return;
+
+            if (selectedItem.Tag is not IMenuItemAction action)
+                return;
+
+            action.Execute();
+        }
+
+        private void OpenMenuItem(NavigationViewItem menuItem)
+        {
+            if (menuItem.Tag is IMenuItemAction action)
+                action.Execute();
+
+            RequestsNavigationView.SelectedItem = menuItem;
+        }
+
+        private void RequestsNavigationView_RightTapped(object sender, RightTappedRoutedEventArgs e)
+        {
+            var source = e.OriginalSource as DependencyObject;
+            _contextMenuItem = FindAncestor<NavigationViewItem>(source);
+
+            if (_contextMenuItem == null)
+                return;
+
+            ContextCommandBarFlyout.ShowAt(_contextMenuItem, new FlyoutShowOptions
+            {
+                ShowMode = FlyoutShowMode.Transient,
+                Placement = FlyoutPlacementMode.Left,
+                Position = e.GetPosition(_contextMenuItem)
+            });
+        }
+
+        private static T? FindAncestor<T>(DependencyObject? element) where T : DependencyObject
+        {
+            while (element != null)
+            {
+                if (element is T match)
+                    return match;
+
+                element = VisualTreeHelper.GetParent(element);
+            }
+
+            return null;
+        }
+
+        private void ContextDeleteButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (_contextMenuItem?.Tag is not FrameOpener opener)
+                return;
+
+
+            if (opener.Parameter is not string id)
+                return;
+
+            if (opener.PageType == typeof(WebRequestPage))
+            {
+                _requestStore.DeleteRequest(id);
+            }
+            else if (opener.PageType == typeof(CollectionPage))
+            {
+                _requestStore.DeleteCollection(id);
+            }
+        }
+
+        private void CtrlF_Invoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
+        {
+            RequestsSearchBox.Focus(FocusState.Programmatic);
+        }
+
+        private void TitleBar_PaneToggleRequested(TitleBar sender, object args)
+        {
+            RequestsNavigationView.IsPaneOpen = !RequestsNavigationView.IsPaneOpen;
+        }
+
+        private List<SearchResult> SearchRequests(string searchText)
+        {
+            if (string.IsNullOrWhiteSpace(searchText))
+                return [];
+
+            var results = new List<SearchResult>();
+            var searchLower = searchText.ToLower();
+
+            // Get all requests from root and collections
+            var allRequests = _requestStore.GetAllRequests();
+
+            foreach (var request in allRequests)
+            {
+                var matchScore = 0;
+                var matchDetails = new List<string>();
+
+                // Search in name (highest priority)
+                if (request.Name?.Contains(searchText, StringComparison.OrdinalIgnoreCase) == true)
+                {
+                    matchScore += request.Name.StartsWith(searchText, StringComparison.OrdinalIgnoreCase) ? 100 : 50;
+                    matchDetails.Add("name");
+                }
+
+                // Search in URL
+                if (request.Url?.Contains(searchText, StringComparison.OrdinalIgnoreCase) == true)
+                {
+                    matchScore += 30;
+                    matchDetails.Add("url");
+                }
+
+                // Search in headers
+                foreach (var header in request.Headers)
+                {
+                    if (header.Name?.Contains(searchText, StringComparison.OrdinalIgnoreCase) == true ||
+                        header.Value?.Contains(searchText, StringComparison.OrdinalIgnoreCase) == true)
+                    {
+                        matchScore += 10;
+                        if (!matchDetails.Contains("headers"))
+                            matchDetails.Add("headers");
+                    }
+                }
+
+                // Search in body
+                if (request.Body?.Contains(searchText, StringComparison.OrdinalIgnoreCase) == true)
+                {
+                    matchScore += 20;
+                    matchDetails.Add("body");
+                }
+
+                if (matchScore > 0)
+                {
+                    var collectionPrefix = request.Collection != null ? $"{request.Collection.Name} / " : "";
+                    var displayText = $"{collectionPrefix}{request.Name ?? "Unnamed"} ({string.Join(", ", matchDetails)})";
+                    results.Add(new SearchResult(request, displayText, matchScore));
+                }
+            }
+
+            return results.OrderByDescending(r => r.MatchScore).ToList();
+        }
+
+        private void RequestsSearchBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
+        {
+            if (args.Reason == AutoSuggestionBoxTextChangeReason.UserInput)
+            {
+                var searchResults = SearchRequests(sender.Text);
+
+                if (searchResults.Count > 0)
+                {
+                    RequestsSearchBox.ItemsSource = searchResults;
+                }
+                else if (!string.IsNullOrWhiteSpace(sender.Text))
+                {
+                    RequestsSearchBox.ItemsSource = new[]
+                    {
                         new FakeSearchResult("No results found")
                     };
+                }
+                else
+                {
+                    RequestsSearchBox.ItemsSource = null;
+                }
+            }
         }
-        else
+
+        private void RequestsSearchBox_QuerySubmitted(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args)
         {
-          RequestsSearchBox.ItemsSource = null;
+            if (args.ChosenSuggestion is SearchResult result)
+            {
+                // Find the menu item for the selected request and open it
+                var menuItem = FindMenuItemForRequest(result.Request.Id);
+                if (menuItem != null)
+                {
+                    OpenMenuItem(menuItem);
+                    sender.Text = string.Empty;
+                    sender.ItemsSource = null;
+                }
+            }
+            else if (args.ChosenSuggestion is FakeSearchResult)
+            {
+                // Do nothing when the "No results found" item is selected
+                sender.Text = string.Empty;
+                sender.ItemsSource = null;
+            }
+            else if (!string.IsNullOrWhiteSpace(args.QueryText))
+            {
+                // User pressed Enter without selecting a suggestion, open the first result
+                var searchResults = SearchRequests(args.QueryText);
+                if (searchResults.Count > 0)
+                {
+                    var menuItem = FindMenuItemForRequest(searchResults[0].Request.Id);
+                    if (menuItem != null)
+                    {
+                        OpenMenuItem(menuItem);
+                        sender.Text = string.Empty;
+                        sender.ItemsSource = null;
+                    }
+                }
+            }
         }
-      }
-    }
 
-    private void RequestsSearchBox_QuerySubmitted(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args)
-    {
-      if (args.ChosenSuggestion is SearchResult result)
-      {
-        // Find the menu item for the selected request and open it
-        var menuItem = FindMenuItemForRequest(result.Request.Id);
-        if (menuItem != null)
+        private NavigationViewItem? FindMenuItemForRequest(string requestId)
         {
-          OpenMenuItem(menuItem);
-          sender.Text = string.Empty;
-          sender.ItemsSource = null;
+            // Search in root menu items
+            var menuItem = _menuItems.OfType<NavigationViewItem>()
+                .FirstOrDefault(item => item.Tag is FrameOpener opener &&
+                                        opener.PageType == typeof(WebRequestPage) &&
+                                        opener.Parameter as string == requestId);
+
+            if (menuItem != null)
+                return menuItem;
+
+            // Search within collection menu items
+            foreach (var collectionMenuItem in _collectionMenuItems.Values)
+            {
+                menuItem = collectionMenuItem.MenuItems.OfType<NavigationViewItem>()
+                    .FirstOrDefault(item => item.Tag is FrameOpener opener &&
+                                            opener.PageType == typeof(WebRequestPage) &&
+                                            opener.Parameter as string == requestId);
+
+                if (menuItem != null)
+                    return menuItem;
+            }
+
+            return null;
         }
-      }
-      else if (args.ChosenSuggestion is FakeSearchResult)
-      {
-        // Do nothing when the "No results found" item is selected
-        sender.Text = string.Empty;
-        sender.ItemsSource = null;
-      }
-      else if (!string.IsNullOrWhiteSpace(args.QueryText))
-      {
-        // User pressed Enter without selecting a suggestion, open the first result
-        var searchResults = SearchRequests(args.QueryText);
-        if (searchResults.Count > 0)
+
+        private async void RootGrid_Loaded(object sender, RoutedEventArgs e)
         {
-          var menuItem = FindMenuItemForRequest(searchResults[0].Request.Id);
-          if (menuItem != null)
-          {
-            OpenMenuItem(menuItem);
-            sender.Text = string.Empty;
-            sender.ItemsSource = null;
-          }
+            await RefreshMenuItemsAsync();
         }
-      }
     }
-
-    private NavigationViewItem? FindMenuItemForRequest(string requestId)
-    {
-      // Search in root menu items
-      var menuItem = _menuItems.OfType<NavigationViewItem>()
-          .FirstOrDefault(item => item.Tag is FrameOpener opener &&
-                                  opener.PageType == typeof(WebRequestPage) &&
-                                  opener.Parameter as string == requestId);
-
-      if (menuItem != null)
-        return menuItem;
-
-      // Search within collection menu items
-      foreach (var collectionMenuItem in _collectionMenuItems.Values)
-      {
-        menuItem = collectionMenuItem.MenuItems.OfType<NavigationViewItem>()
-            .FirstOrDefault(item => item.Tag is FrameOpener opener &&
-                                    opener.PageType == typeof(WebRequestPage) &&
-                                    opener.Parameter as string == requestId);
-
-        if (menuItem != null)
-          return menuItem;
-      }
-
-      return null;
-    }
-
-    private async void RootGrid_Loaded(object sender, RoutedEventArgs e)
-    {
-      await RefreshMenuItemsAsync();
-    }
-  }
 }

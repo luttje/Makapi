@@ -5,17 +5,17 @@ namespace Makapi;
 
 public class SendButtonTextConverter : IValueConverter
 {
-  public object Convert(object value, Type targetType, object parameter, string language)
-  {
-    if (value is bool isSending)
+    public object Convert(object value, Type targetType, object parameter, string language)
     {
-      return isSending ? "Sending..." : "Send";
+        if (value is bool isSending)
+        {
+            return isSending ? "Sending..." : "Send";
+        }
+        return "Send";
     }
-    return "Send";
-  }
 
-  public object ConvertBack(object value, Type targetType, object parameter, string language)
-  {
-    throw new NotImplementedException();
-  }
+    public object ConvertBack(object value, Type targetType, object parameter, string language)
+    {
+        throw new NotImplementedException();
+    }
 }

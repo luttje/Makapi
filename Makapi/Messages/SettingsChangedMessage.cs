@@ -4,7 +4,7 @@ namespace Makapi.Messages;
 
 internal sealed class SettingsChangedMessage : ValueChangedMessage<object?>
 {
-  public SettingsChangedMessage() : base(null)
-  {
-  }
+    public SettingsChangedMessage() : base(null)
+    {
+    }
 }
