@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.DependencyInjection;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -11,7 +12,8 @@ using System.Threading.Tasks;
 
 namespace ApiMonkey.Pages;
 
-public partial class WebRequestPageViewModel : ObservableObject
+[ObservableObject]
+public partial class WebRequestPageViewModel
 {
     private readonly RequestStore _requestStore;
 
@@ -34,6 +36,12 @@ public partial class WebRequestPageViewModel : ObservableObject
 
     [ObservableProperty]
     public partial bool ResponseLoaded { get; set; }
+
+    [ObservableProperty]
+    public partial bool IsSending { get; set; }
+
+    [ObservableProperty]
+    public partial string? ErrorMessage { get; set; }
 
     public ObservableCollection<HeaderEntry> RequestHeaders { get; } = [];
     public ObservableCollection<Header> ResponseHeaders { get; } = [];
@@ -75,17 +83,36 @@ public partial class WebRequestPageViewModel : ObservableObject
         if (Request is null)
             return;
 
+        IsSending = true;
         ResponseLoaded = false;
+        ErrorMessage = null;
         ResponseHeaders.Clear();
 
-        var response = await new ApiClient().SendRequest(
-            Request.Url,
-            Request.Method,
-            Request.Body,
-            Request.Headers.ToArray());
+        try
+        {
+            var response = await new ApiClient().SendRequest(
+                Request.Url,
+                Request.Method,
+                Request.Body,
+                Request.Headers.ToArray());
 
-        Request.CachedResponse = response;
-        ApplyResponse(response);
+            Request.CachedResponse = response;
+            ApplyResponse(response);
+        }
+        catch (System.Net.Http.HttpRequestException ex)
+        {
+            ErrorMessage = $"Request failed: {ex.Message}";
+            ResponseBody = string.Empty;
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"An error occurred: {ex.Message}";
+            ResponseBody = string.Empty;
+        }
+        finally
+        {
+            IsSending = false;
+        }
     }
 
     [RelayCommand]

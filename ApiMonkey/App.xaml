@@ -14,6 +14,9 @@
             
             <!-- Other app resources here -->
             <toolkit:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+            <toolkit:BoolNegationConverter x:Key="BoolNegationConverter" />
+            <local:SendButtonTextConverter x:Key="SendButtonTextConverter" />
+            <local:StringToBoolConverter x:Key="StringToBoolConverter" />
         </ResourceDictionary>
     </Application.Resources>
 </Application>

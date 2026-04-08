@@ -19,6 +19,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Runtime.InteropServices.WindowsRuntime;
+using System.Threading.Tasks;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
 using Windows.UI;
@@ -42,7 +43,7 @@ namespace ApiMonkey
             _requestStore = App.Services.GetRequiredService<RequestStore>();
             _messenger = App.Services.GetRequiredService<IMessenger>();
 
-            _messenger.Register<SettingsChangedMessage>(this, (r, m) => RefreshMenuItems());
+            _messenger.Register<SettingsChangedMessage>(this, async (r, m) => await RefreshMenuItemsAsync());
 
             ExtendsContentIntoTitleBar = true;
             SetTitleBar(TitleBar);
@@ -182,7 +183,7 @@ namespace ApiMonkey
             return menuItem;
         }
 
-        public void RefreshMenuItems()
+        public async Task RefreshMenuItemsAsync()
         {
             _menuItems.Clear();
             _collectionMenuItems.Clear();
@@ -216,7 +217,7 @@ namespace ApiMonkey
             });
 
             _noAutoOpen = true;
-            _requestStore.LoadRequestsFromDisk();
+            await _requestStore.LoadRequestsFromDiskAsync();
             _noAutoOpen = false;
         }
 
@@ -321,9 +322,9 @@ namespace ApiMonkey
             }
         }
 
-        private void RootGrid_Loaded(object sender, RoutedEventArgs e)
+        private async void RootGrid_Loaded(object sender, RoutedEventArgs e)
         {
-            RefreshMenuItems();
+            await RefreshMenuItemsAsync();
         }
     }
 }

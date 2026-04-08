@@ -10,6 +10,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace ApiMonkey.Models;
@@ -34,6 +35,8 @@ public partial class RequestCollection
     };
 
     private bool _ready = false;
+    private CancellationTokenSource? _debounceCts;
+    private const int DebounceDelayMs = 500;
 
     [JsonConstructor]
     private RequestCollection() { }
@@ -57,12 +60,35 @@ public partial class RequestCollection
         if (!_ready)
             return;
 
+        _debounceCts?.Cancel();
+        _debounceCts = new CancellationTokenSource();
+        var token = _debounceCts.Token;
+
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                await Task.Delay(DebounceDelayMs, token);
+
+                if (!token.IsCancellationRequested)
+                {
+                    await SaveAsync();
+                }
+            }
+            catch (TaskCanceledException)
+            {
+            }
+        }, token);
+    }
+
+    private async Task SaveAsync()
+    {
         Directory.CreateDirectory(Path);
 
         var collectionFilePath = System.IO.Path.Combine(Path, $"collection.{EXTENSION}");
         var json = JsonSerializer.Serialize(this, _saveJsonOptions);
 
-        File.WriteAllText(collectionFilePath, json);
+        await File.WriteAllTextAsync(collectionFilePath, json);
     }
 
     /// <summary>

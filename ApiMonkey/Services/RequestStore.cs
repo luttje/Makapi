@@ -27,24 +27,23 @@ public class RequestStore
         _settingsManager = settingsManager;
     }
 
-    internal void LoadRequestsFromDisk()
+    internal async Task LoadRequestsFromDiskAsync()
     {
         var roots = _settingsManager.Settings.RequestRoots;
 
         foreach (var root in roots)
         {
-            LoadRequestsFromDirectory(root);
+            await LoadRequestsFromDirectoryAsync(root);
         }
     }
 
-    private void LoadRequestsFromDirectory(string directory)
+    private async Task LoadRequestsFromDirectoryAsync(string directory)
     {
         if (!Directory.Exists(directory))
             return;
 
         var requestFiles = Directory.GetFiles(directory, $"*.{Request.EXTENSION}", SearchOption.AllDirectories);
 
-        // Find collections, then load them
         var collectionInfos = Directory.GetFiles(directory, $"*.{RequestCollection.EXTENSION}", SearchOption.AllDirectories);
         var collectionDirectories = new Dictionary<string, RequestCollection>();
 
@@ -52,7 +51,7 @@ public class RequestStore
         {
             var collectionDirectory = Path.GetDirectoryName(collectionInfoFile);
 
-            var json = File.ReadAllText(collectionInfoFile);
+            var json = await File.ReadAllTextAsync(collectionInfoFile);
             var collection = RequestCollection.FromJson(json, collectionDirectory);
 
             collectionDirectories.Add(collectionDirectory, collection);
@@ -61,11 +60,9 @@ public class RequestStore
             CollectionAdded?.Invoke(collection);
         }
 
-        // Load requests afterwards, so they fill into their collections if needed
         foreach (var file in requestFiles)
         {
-            // TODO: Implement version check and guard against corrupted files
-            var json = File.ReadAllText(file);
+            var json = await File.ReadAllTextAsync(file);
             var request = Request.FromJson(json, file);
             var fileDirectory = Path.GetDirectoryName(file);
 

@@ -9,6 +9,8 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace ApiMonkey.Models;
 
@@ -57,6 +59,8 @@ public partial class Request
     };
 
     private bool _ready = false;
+    private CancellationTokenSource? _debounceCts;
+    private const int DebounceDelayMs = 500;
 
     [JsonConstructor]
     private Request() { }
@@ -118,12 +122,35 @@ public partial class Request
         if (!_ready)
             return;
 
+        _debounceCts?.Cancel();
+        _debounceCts = new CancellationTokenSource();
+        var token = _debounceCts.Token;
+
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                await Task.Delay(DebounceDelayMs, token);
+
+                if (!token.IsCancellationRequested)
+                {
+                    await SaveAsync();
+                }
+            }
+            catch (TaskCanceledException)
+            {
+            }
+        }, token);
+    }
+
+    private async Task SaveAsync()
+    {
         Directory.CreateDirectory(
             System.IO.Path.GetDirectoryName(Path) ?? throw new InvalidOperationException("Invalid request path")
         );
 
         var json = ToJson();
-        File.WriteAllText(Path, json);
+        await File.WriteAllTextAsync(Path, json);
     }
 
     private void ResetToDefaultRequestHeaders()
