@@ -19,7 +19,7 @@ jobs:
     runs-on: windows-latest
 
     env:
-      Solution_Name: ApiMonkey.sln
+      Solution_Name: Makapi.sln
 
     steps:
     - name: Checkout

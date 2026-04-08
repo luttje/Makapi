@@ -1,6 +1,6 @@
-# ApiMonkey Release Installation
+# Makapi Release Installation
 
-ApiMonkey release packages are signed with a **self-signed certificate**.
+Makapi release packages are signed with a **self-signed certificate**.
 Because of that, Windows will only allow installation after you trust the included certificate.
 
 ## 1. Unpack The Release ZIP

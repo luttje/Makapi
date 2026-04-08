@@ -35,8 +35,8 @@ jobs:
       run: |
         mkdir -p release-packages
         cd artifacts
-        zip -r "../release-packages/ApiMonkey-x64.zip" "msix-x64/"
-        zip -r "../release-packages/ApiMonkey-x86.zip" "msix-x86/"
+        zip -r "../release-packages/Makapi-x64.zip" "msix-x64/"
+        zip -r "../release-packages/Makapi-x86.zip" "msix-x86/"
 
     - name: Create GitHub Release
       uses: ncipollo/release-action@v1

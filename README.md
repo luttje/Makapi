@@ -1,10 +1,10 @@
-# 🐵 ApiMonkey
+# 🐵 Makapi
 
-A lightweight Windows API client for developers who just want to send requests. No account, no cloud sync, no bloat. Built with WinUI 3, ApiMonkey stores everything as plain JSON files on your disk, making it easy to version-control your requests alongside your code.
+A lightweight Windows API client for developers who just want to send requests. No account, no cloud sync, no bloat. Built with WinUI 3, Makapi stores everything as plain JSON files on your disk, making it easy to version-control your requests alongside your code.
 
 <div align="center">
 
-  <img src="./Media/logo.png" alt="ApiMonkey Logo" width="400"/>
+  <img src="./Media/logo.png" alt="Makapi Logo" width="400"/>
 
 </div>
 
@@ -15,7 +15,7 @@ A lightweight Windows API client for developers who just want to send requests. 
 
 <div align="center">
 
-  <img src="./Media/screenshot.png" alt="Screenshot showing ApiMonkey with a navigation pane on the left, a search bar in the title bar, and a split view showing a POST request on the left and the response on the right" width="700"/>
+  <img src="./Media/screenshot.png" alt="Screenshot showing Makapi with a navigation pane on the left, a search bar in the title bar, and a split view showing a POST request on the left and the response on the right" width="700"/>
 
 </div>
 
@@ -35,7 +35,7 @@ A lightweight Windows API client for developers who just want to send requests. 
 All data is saved as human-readable JSON files, designed to live alongside your project:
 
 ```txt
-%AppData%\ApiMonkey\
+%AppData%\Makapi\
     settings.json
     requests\
         {id}.apirequest.json
@@ -54,7 +54,7 @@ You can add any directory as a request root in **Settings**, so requests can liv
 
 ## 🚀 Running Locally
 
-If you want to build or debug ApiMonkey locally in Visual Studio, use the steps below.
+If you want to build or debug Makapi locally in Visual Studio, use the steps below.
 
 1. Ensure you have the prerequisites installed:
 
@@ -63,7 +63,7 @@ If you want to build or debug ApiMonkey locally in Visual Studio, use the steps 
       - The `.NET desktop development` workload
       - The `WinUI application development` workload
 
-2. Open `ApiMonkey.sln` in Visual Studio.
+2. Open `Makapi.sln` in Visual Studio.
 
     If Visual Studio offers to install missing components when you open the solution, accept the prompt and let it finish restoring workloads and NuGet packages.
 

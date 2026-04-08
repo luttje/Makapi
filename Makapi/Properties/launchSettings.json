@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "Makapi (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "Makapi (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}
