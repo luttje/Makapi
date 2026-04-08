@@ -1,0 +1,48 @@
+name: Create Release
+
+on:
+  workflow_run:
+    workflows: [ "Build, Sign and Package MSIX app" ]
+    types: [ completed ]
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+
+  release:
+    # Only run when the build succeeded AND it was triggered by a version tag push
+    if: >
+      github.event.workflow_run.conclusion == 'success' && startsWith(github.event.workflow_run.head_branch, 'v')
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ github.event.workflow_run.head_sha }}
+
+    - name: Download build artifacts
+      uses: actions/download-artifact@v4
+      with:
+        run-id: ${{ github.event.workflow_run.id }}
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        path: artifacts/
+
+    - name: Package artifacts for release
+      run: |
+        mkdir -p release-packages
+        cd artifacts
+        zip -r "../release-packages/ApiMonkey-x64.zip" "msix-x64/"
+        zip -r "../release-packages/ApiMonkey-x86.zip" "msix-x86/"
+
+    - name: Create GitHub Release
+      uses: ncipollo/release-action@v1
+      with:
+        tag: ${{ github.event.workflow_run.head_branch }}
+        commit: ${{ github.event.workflow_run.head_sha }}
+        artifacts: "release-packages/*.zip"
+        bodyFile: INSTALL.md
+        token: ${{ secrets.GITHUB_TOKEN }}

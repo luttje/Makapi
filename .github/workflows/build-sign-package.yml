@@ -1,0 +1,75 @@
+name: Build, Sign and Package MSIX app
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ 'v*.*.*' ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+
+  build:
+
+    strategy:
+      matrix:
+        configuration: [ Release ]
+        platform: [ x64, x86 ]
+
+    runs-on: windows-latest
+
+    env:
+      Solution_Name: ApiMonkey.sln
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v6
+      with:
+        fetch-depth: 0
+
+    - name: Install .NET Core
+      uses: actions/setup-dotnet@v5
+      with:
+        dotnet-version: 9.0.x
+
+    - name: Setup MSBuild.exe
+      uses: microsoft/setup-msbuild@v3
+
+    # Restore the application to populate the obj folder with RuntimeIdentifiers
+    - name: Restore the application
+      run: msbuild $env:Solution_Name /t:Restore /p:Configuration=$env:Configuration
+      env:
+        Configuration: ${{ matrix.configuration }}
+
+    # Decode the base 64 encoded pfx and save the Signing_Certificate
+    - name: Decode the pfx
+      run: |
+        $pfx_cert_byte = [System.Convert]::FromBase64String("${{ secrets.BASE64_ENCODED_PFX }}")
+        $certificatePath = "GitHubActionsWorkflow.pfx"
+        [IO.File]::WriteAllBytes("$certificatePath", $pfx_cert_byte)
+
+    # Create the app package by building and packaging the project
+    - name: Create the app package
+      run: msbuild $env:Solution_Name /p:Configuration=$env:Configuration /p:Platform=$env:Platform /p:UapAppxPackageBuildMode=$env:Appx_Package_Build_Mode /p:AppxBundle=$env:Appx_Bundle /p:PackageCertificateKeyFile=GitHubActionsWorkflow.pfx /p:AppxPackageDir="$env:Appx_Package_Dir" /p:GenerateAppxPackageOnBuild=true
+      env:
+        Appx_Bundle: Never
+        Appx_Package_Build_Mode: SideloadOnly
+        Appx_Package_Dir: Packages\
+        Configuration: ${{ matrix.configuration }}
+        Platform: ${{ matrix.platform }}
+
+    # Export the public certificate (.cer) so users can trust the package (TODO: Check if needed, or if already included with the output)
+    # - name: Export certificate for distribution
+    #   run: |
+    #     $cert = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2("GitHubActionsWorkflow.pfx")
+    #     $cerBytes = $cert.Export([System.Security.Cryptography.X509Certificates.X509ContentType]::Cert)
+    #     [IO.File]::WriteAllBytes("Packages\ApiMonkey.cer", $cerBytes)
+
+    - name: Remove the pfx
+      run: Remove-Item -path GitHubActionsWorkflow.pfx
+
+    - name: Upload MSIX package
+      uses: actions/upload-artifact@v4
+      with:
+        name: msix-${{ matrix.platform }}
+        path: Packages\
