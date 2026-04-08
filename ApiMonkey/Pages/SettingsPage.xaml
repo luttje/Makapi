@@ -7,6 +7,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:models="using:ApiMonkey.Models"
+    xmlns:viewmodels="using:ApiMonkey.ViewModels"
     xmlns:toolkit="using:CommunityToolkit.WinUI.Controls"
     mc:Ignorable="d">
 
@@ -19,7 +20,7 @@
         <TextBlock Style="{StaticResource TitleTextBlockStyle}">
             Settings
         </TextBlock>
-        
+
         <ScrollViewer Grid.Row="1">
             <StackPanel Orientation="Vertical"
                         MaxWidth="1064">
@@ -34,6 +35,7 @@
                                               HorizontalContentAlignment="Stretch">
                             <StackPanel Spacing="8">
                                 <ListView x:Name="RequestRootsListView"
+                                          ItemsSource="{x:Bind ViewModel.RequestRoots}"
                                           SelectionMode="None"
                                           HorizontalAlignment="Stretch">
                                     <ListView.ItemContainerStyle>
@@ -43,33 +45,38 @@
                                             <Setter Property="HorizontalContentAlignment" Value="Stretch" />
                                         </Style>
                                     </ListView.ItemContainerStyle>
-                                    
+
                                     <ListView.ItemTemplate>
-                                        <DataTemplate x:DataType="models:ChangingValueContainer">
+                                        <DataTemplate x:DataType="viewmodels:RequestRootEntry">
                                             <Grid ColumnSpacing="8">
                                                 <Grid.ColumnDefinitions>
                                                     <ColumnDefinition Width="Auto" />
                                                     <ColumnDefinition Width="*" />
                                                     <ColumnDefinition Width="Auto" />
                                                 </Grid.ColumnDefinitions>
-                                                
+
                                                 <Button Grid.Column="0"
                                                         Content="&#xE711;"
                                                         FontFamily="{ThemeResource SymbolThemeFontFamily}"
-                                                        Click="RemovePathButton_Click" />
+                                                        Command="{x:Bind Owner.RemovePathCommand}"
+                                                        CommandParameter="{x:Bind}" />
+
                                                 <TextBox Grid.Column="1"
-                                                         Text="{x:Bind Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                         Text="{x:Bind Container.Value, Mode=TwoWay,
+                                                                UpdateSourceTrigger=PropertyChanged}"
                                                          PlaceholderText="Enter path..." />
+
                                                 <Button Grid.Column="2"
                                                         Content="Browse"
-                                                        Click="BrowseButton_Click" />
+                                                        Command="{x:Bind Owner.BrowseCommand}"
+                                                        CommandParameter="{x:Bind}" />
                                             </Grid>
                                         </DataTemplate>
                                     </ListView.ItemTemplate>
                                 </ListView>
 
                                 <Button Content="Add path"
-                                        Click="AddPathButton_Click" />
+                                        Command="{x:Bind ViewModel.AddPathCommand}" />
                             </StackPanel>
                         </toolkit:SettingsCard>
                     </toolkit:SettingsExpander.Items>

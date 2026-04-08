@@ -1,5 +1,6 @@
 using ApiMonkey.Models;
 using ApiMonkey.Services;
+using ApiMonkey.ViewModels;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
@@ -20,7 +21,7 @@ namespace ApiMonkey.Pages;
 
 public sealed partial class CollectionPage : Page
 {
-    internal RequestCollection CurrentCollection { get; private set; }
+    internal CollectionPageViewModel ViewModel { get; } = new();
 
     public CollectionPage()
     {
@@ -38,20 +39,6 @@ public sealed partial class CollectionPage : Page
             throw new ArgumentNullException(nameof(collectionId));
         }
 
-        CurrentCollection = RequestStore.Instance.GetCollectionById(collectionId);
-    }
-
-    private void OpenCollectionFolderButton_Click(object sender, RoutedEventArgs e)
-    {
-        var path = CurrentCollection.Path;
-
-        // Evaluate the path, as it may have been changed by Windows (e.g: by scoping the app to a specific folder)
-        path = Path.GetFullPath(path);
-
-        Process.Start(new ProcessStartInfo
-        {
-            FileName = path,
-            UseShellExecute = true,
-        });
+        ViewModel.CurrentCollection = RequestStore.Instance.GetCollectionById(collectionId);
     }
 }

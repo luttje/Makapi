@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 namespace ApiMonkey.Models;
 
 [ObservableObject]
-internal partial class ChangingValueContainer
+public partial class ChangingValueContainer
 {
     [ObservableProperty]
     public partial string? Value { get; set; }

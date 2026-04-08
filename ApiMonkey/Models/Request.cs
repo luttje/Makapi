@@ -37,17 +37,14 @@ internal partial class Request
 
     [ObservableProperty]
     public partial string? Method { get; set; }
-
     partial void OnMethodChanged(string? value) => Save();
 
     [ObservableProperty]
     public partial string? Url { get; set; }
-
     partial void OnUrlChanged(string? value) => Save();
 
     [ObservableProperty]
     public partial string? Body { get; set; }
-
     partial void OnBodyChanged(string? value) => Save();
 
     [JsonInclude]

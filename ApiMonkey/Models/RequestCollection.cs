@@ -26,7 +26,6 @@ internal partial class RequestCollection
 
     [ObservableProperty]
     public partial string? Name { get; set; }
-
     partial void OnNameChanged(string? value) => Save();
 
     private readonly JsonSerializerOptions _saveJsonOptions = new()

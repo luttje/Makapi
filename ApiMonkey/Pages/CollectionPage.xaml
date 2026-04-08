@@ -28,7 +28,7 @@
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
 
-            <TextBox Text="{x:Bind CurrentCollection.Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+            <TextBox Text="{x:Bind ViewModel.CurrentCollection.Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                      FontSize="24"
                      FontWeight="Black"
                      Background="Transparent"
@@ -39,7 +39,7 @@
             <Button Grid.Column="1"
                     Margin="10,0,0,0"
                     Content="Open Collection Folder"
-                    Click="OpenCollectionFolderButton_Click"
+                    Command="{x:Bind ViewModel.OpenCollectionFolderCommand}"
                     VerticalAlignment="Bottom" />
         </Grid>
     </Grid>
