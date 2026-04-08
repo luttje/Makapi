@@ -11,7 +11,7 @@ internal class ApiClient
 {
     private readonly HttpClient _client;
 
-    internal ApiClient(HttpClient? client = null) 
+    internal ApiClient(HttpClient? client = null)
     {
         _client = client ?? new HttpClient();
     }
@@ -38,9 +38,10 @@ internal class ApiClient
 
         return new ApiResponse(
             body: await response.Content.ReadAsStringAsync(),
-            headers: response.Headers.Select(h => new Header { 
-                Name = h.Key, 
-                Value = string.Join(", ", h.Value) 
+            headers: response.Headers.Select(h => new Header
+            {
+                Name = h.Key,
+                Value = string.Join(", ", h.Value)
             }).ToList()
         );
     }

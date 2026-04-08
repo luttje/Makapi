@@ -8,22 +8,13 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
-using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
-using Microsoft.UI.Xaml.Navigation;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.IO;
 using System.Linq;
-using System.Net;
-using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading.Tasks;
-using Windows.Foundation;
-using Windows.Foundation.Collections;
-using Windows.UI;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace ApiMonkey
 {
@@ -124,7 +115,7 @@ namespace ApiMonkey
                 _collectionMenuItems.Remove(collection.Id);
             }
         }
-        
+
         private NavigationViewItem AddRequestMenuItem(Request request, IList<object>? parent = null)
         {
             var menuItem = new NavigationViewItem

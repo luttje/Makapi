@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ApiMonkey.Models
 {
@@ -24,7 +21,7 @@ namespace ApiMonkey.Models
         /// <param name="path"></param>
         internal void TryAddExclusiveRoot(string path)
         {
-            if (RequestRoots.Contains(path)) 
+            if (RequestRoots.Contains(path))
                 return;
 
             foreach (var root in RequestRoots)
@@ -38,8 +35,8 @@ namespace ApiMonkey.Models
 
         private bool IsSubdirectory(string parent, string child)
         {
-            var parentUri = new Uri(parent.EndsWith(Path.DirectorySeparatorChar.ToString()) 
-                ? parent 
+            var parentUri = new Uri(parent.EndsWith(Path.DirectorySeparatorChar.ToString())
+                ? parent
                 : parent + Path.DirectorySeparatorChar);
             var childUri = new Uri(child);
 

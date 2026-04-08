@@ -128,7 +128,6 @@
                                                          Grid.Column="1" 
                                                          Margin="5,0,0,0"  />
 
-                                                <!-- TODO: This doesn't work, use a wrapper around Header, like we did for RequestRootEntry -->
                                                 <Button Grid.Column="2"
                                                         Margin="5,0,0,0"
                                                         Command="{x:Bind Owner.RemoveRequestHeaderCommand}"

@@ -1,5 +1,4 @@
 using ApiMonkey.Models;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
 using System;
@@ -47,7 +46,7 @@ public sealed partial class WebRequestPage : Page
         var tab = e.AddedItems.FirstOrDefault() as TabViewItem ?? RequestBodyTab;
 
         ViewModel.Request.CurrentRequestTab = tab == RequestBodyTab
-            ? TabState.Body 
+            ? TabState.Body
             : TabState.Headers;
     }
 

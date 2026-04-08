@@ -1,12 +1,8 @@
-﻿using ApiMonkey.Services;
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Collections.Specialized;
 using System.ComponentModel;
 using System.IO;
-using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading;
@@ -172,6 +168,13 @@ public partial class Request
         });
     }
 
+    /// <summary>
+    /// Creates a new instance of the Request class from a JSON string and assigns the specified path.
+    /// </summary>
+    /// <param name="json">A JSON-formatted string representing the request data. If null or invalid, a new Request instance is created.</param>
+    /// <param name="path">The path to assign to the Request instance. This value is set on the resulting object.</param>
+    /// <returns>A Request instance populated with data from the JSON string and the specified path.</returns>
+    /// <exception cref="JsonException">Thrown when the JSON string is invalid and cannot be deserialized into a Request object.</exception>
     internal static Request FromJson(string json, string path)
     {
         var request = JsonSerializer.Deserialize<Request>(json);

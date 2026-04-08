@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace ApiMonkey.Services;
@@ -49,30 +49,42 @@ public class RequestStore
 
         foreach (var collectionInfoFile in collectionInfos)
         {
-            var collectionDirectory = Path.GetDirectoryName(collectionInfoFile);
+            try
+            {
+                var collectionDirectory = Path.GetDirectoryName(collectionInfoFile);
 
-            var json = await File.ReadAllTextAsync(collectionInfoFile);
-            var collection = RequestCollection.FromJson(json, collectionDirectory);
+                var json = await File.ReadAllTextAsync(collectionInfoFile);
+                var collection = RequestCollection.FromJson(json, collectionDirectory);
 
-            collectionDirectories.Add(collectionDirectory, collection);
+                collectionDirectories.Add(collectionDirectory, collection);
 
-            _collections.Add(collection);
-            CollectionAdded?.Invoke(collection);
+                _collections.Add(collection);
+                CollectionAdded?.Invoke(collection);
+            }
+            // TODO: Find out how to report these to the user, maybe with a log file or something
+            catch (OperationCanceledException) { }
+            catch (JsonException) { }
         }
 
         foreach (var file in requestFiles)
         {
-            var json = await File.ReadAllTextAsync(file);
-            var request = Request.FromJson(json, file);
-            var fileDirectory = Path.GetDirectoryName(file);
-
-            if (collectionDirectories.TryGetValue(fileDirectory, out var collection))
+            try
             {
-                request.Collection = collection;
-            }
+                var json = await File.ReadAllTextAsync(file);
+                var request = Request.FromJson(json, file);
+                var fileDirectory = Path.GetDirectoryName(file);
 
-            _rootRequests.Add(request);
-            RequestAdded?.Invoke(request);
+                if (collectionDirectories.TryGetValue(fileDirectory, out var collection))
+                {
+                    request.Collection = collection;
+                }
+
+                _rootRequests.Add(request);
+                RequestAdded?.Invoke(request);
+            }
+            // TODO: Find out how to report these to the user, maybe with a log file or something
+            catch (OperationCanceledException) { }
+            catch (JsonException) { }
         }
     }
 

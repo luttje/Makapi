@@ -8,7 +8,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
     Title="ApiMonkey">
-    
+
     <Window.SystemBackdrop>
         <MicaBackdrop />
     </Window.SystemBackdrop>
@@ -51,7 +51,7 @@
                 </AutoSuggestBox>
             </TitleBar.Content>
         </TitleBar>
-        
+
         <NavigationView x:Name="RequestsNavigationView"
                         IsBackButtonVisible="Collapsed"
                         IsSettingsVisible="False"

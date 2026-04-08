@@ -1,13 +1,8 @@
 ﻿using ApiMonkey.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
-using Microsoft.UI.Xaml.Shapes;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.IO;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading;
@@ -99,6 +94,13 @@ public partial class RequestCollection
         _ready = true;
     }
 
+    /// <summary>
+    /// Creates a RequestCollection from a JSON string. The path is needed to set the collection's Path property, which is not stored in the JSON but is needed for the collection to function properly.
+    /// </summary>
+    /// <param name="json">The JSON string to deserialize</param>
+    /// <param name="path">The path to the collection directory</param>
+    /// <returns>A RequestCollection instance</returns>
+    /// <exception cref="JsonException">Thrown if the JSON is invalid or cannot be deserialized into a RequestCollection</exception>
     internal static RequestCollection FromJson(string json, string path)
     {
         var collection = JsonSerializer.Deserialize<RequestCollection>(json);
