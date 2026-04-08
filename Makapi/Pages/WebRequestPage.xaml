@@ -6,6 +6,7 @@
     xmlns:local="using:Makapi"
     xmlns:models="using:Makapi.Models"
     xmlns:pages="using:Makapi.Pages"
+	xmlns:monaco="using:MonacoEditor.WinUI3"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
@@ -159,13 +160,13 @@
                             <RowDefinition Height="*" />
                         </Grid.RowDefinitions>
 
-                        <TextBox x:Name="RequestBodyTextBox" 
-                                 Grid.Column="0" 
-                                 Margin="5" 
-                                 AcceptsReturn="True" 
-                                 TextWrapping="Wrap" 
-                                 PlaceholderText="Request Body (for POST, PUT, PATCH)"
-                             Text="{x:Bind ViewModel.Request.Body, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                        <monaco:MonacoEditorControl x:Name="RequestBodyTextBox" 
+                                                    MonacoBaseUrl="monaco"
+                                                    Grid.Column="0" 
+                                                    Margin="5" 
+                                                    EditorLanguage="json"
+                                                    EditorTheme="{x:Bind ViewModel.EditorTheme}"
+                                                    Text="{x:Bind ViewModel.Request.Body, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                     </Grid>
                 </TabViewItem>
             </TabView>
@@ -256,14 +257,14 @@
                                                     Converter={StaticResource BoolToVisibilityConverter}}" />
                         </StackPanel>
                     </TabViewItem.Header>
-                    <TextBox x:Name="ResponseTextBox" 
-                             Grid.Column="1" 
-                             Margin="5" 
-                             AcceptsReturn="True" 
-                             TextWrapping="Wrap" 
-                             IsReadOnly="True" 
-                             PlaceholderText="Response will appear here" 
-                             Text="{x:Bind ViewModel.ResponseBody, Mode=OneWay}" />
+
+                    <monaco:MonacoEditorControl x:Name="ResponseTextBox" 
+                                                MonacoBaseUrl="monaco"
+                                                Grid.Column="1" 
+                                                Margin="5" 
+                                                EditorLanguage="json"
+                                                EditorTheme="{x:Bind ViewModel.EditorTheme}"
+                                                Text="{x:Bind ViewModel.ResponseBody, Mode=OneWay}" />
                 </TabViewItem>
             </TabView>
         </Grid>
