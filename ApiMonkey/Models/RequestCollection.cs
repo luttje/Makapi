@@ -1,4 +1,5 @@
 ﻿using ApiMonkey.Services;
+using CommunityToolkit.Mvvm.ComponentModel;
 using Microsoft.UI.Xaml.Shapes;
 using System;
 using System.Collections.Generic;
@@ -13,30 +14,20 @@ using System.Threading.Tasks;
 
 namespace ApiMonkey.Models;
 
-internal class RequestCollection : INotifyPropertyChanged
+[ObservableObject]
+internal partial class RequestCollection
 {
     public const string EXTENSION = "apicollection.json";
-
-    public event PropertyChangedEventHandler? PropertyChanged;
 
     [JsonInclude]
     public string Id { get; private set; }
     [JsonIgnore] public string Path { get; private set; }
     [JsonIgnore] public List<Request> Requests { get; private set; } = [];
 
-    private string? _name;
-    public string? Name
-    {
-        get => _name;
-        set
-        {
-            if (_name != value)
-            {
-                _name = value;
-                OnPropertyChanged();
-            }
-        }
-    }
+    [ObservableProperty]
+    public partial string? Name { get; set; }
+
+    partial void OnNameChanged(string? value) => Save();
 
     private readonly JsonSerializerOptions _saveJsonOptions = new()
     {
@@ -81,12 +72,6 @@ internal class RequestCollection : INotifyPropertyChanged
     private void MarkReady()
     {
         _ready = true;
-    }
-
-    protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
-    {
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        Save();
     }
 
     internal static RequestCollection FromJson(string json, string path)

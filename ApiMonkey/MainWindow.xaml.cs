@@ -25,7 +25,7 @@ namespace ApiMonkey
 {
     public sealed partial class MainWindow : Window
     {
-        public static MainWindow Current { get; private set; } = null!;
+        public static new MainWindow Current { get; private set; } = null!;
 
         private readonly ObservableCollection<NavigationViewItemBase> _menuItems = [];
         private readonly Dictionary<string, NavigationViewItem> _collectionMenuItems = [];

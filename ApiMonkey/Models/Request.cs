@@ -1,4 +1,5 @@
 ﻿using ApiMonkey.Services;
+using CommunityToolkit.Mvvm.ComponentModel;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -17,12 +18,10 @@ internal enum TabState
     Body,
 }
 
-internal class Request : INotifyPropertyChanged, INotifyCollectionChanged
+[ObservableObject]
+internal partial class Request
 {
     public const string EXTENSION = "apirequest.json";
-
-    public event PropertyChangedEventHandler? PropertyChanged;
-    public event NotifyCollectionChangedEventHandler? CollectionChanged;
 
     public TabState CurrentRequestTab { get; set; } = TabState.Body;
     public TabState CurrentResponseTab { get; set; } = TabState.Body;
@@ -32,61 +31,24 @@ internal class Request : INotifyPropertyChanged, INotifyCollectionChanged
     [JsonIgnore] public string Path { get; private set; }
     [JsonIgnore] public RequestCollection? Collection { get; internal set; }
 
-    private string? _name;
-    public string? Name
-    {
-        get => _name;
-        set
-        {
-            if (_name != value)
-            {
-                _name = value;
-                OnPropertyChanged();
-            }
-        }
-    }
+    [ObservableProperty]
+    public partial string? Name { get; set; }
+    partial void OnNameChanged(string? value) => Save();
 
-    private string? _method;
-    public string? Method
-    {
-        get => _method;
-        set
-        {
-            if (_method != value)
-            {
-                _method = value;
-                OnPropertyChanged();
-            }
-        }
-    }
+    [ObservableProperty]
+    public partial string? Method { get; set; }
 
-    private string? _url;
-    public string? Url
-    {
-        get => _url;
-        set
-        {
-            if (_url != value)
-            {
-                _url = value;
-                OnPropertyChanged();
-            }
-        }
-    }
+    partial void OnMethodChanged(string? value) => Save();
 
-    private string? _body;
-    public string? Body
-    {
-        get => _body;
-        set
-        {
-            if (_body != value)
-            {
-                _body = value;
-                OnPropertyChanged();
-            }
-        }
-    }
+    [ObservableProperty]
+    public partial string? Url { get; set; }
+
+    partial void OnUrlChanged(string? value) => Save();
+
+    [ObservableProperty]
+    public partial string? Body { get; set; }
+
+    partial void OnBodyChanged(string? value) => Save();
 
     [JsonInclude]
     public ObservableCollection<Header> Headers { get; private set; } = [];
@@ -129,7 +91,7 @@ internal class Request : INotifyPropertyChanged, INotifyCollectionChanged
         Headers.CollectionChanged += (sender, args) =>
         {
             UpdateHeaderListeners();
-            OnPropertyChanged(nameof(Headers));
+            Save();
         };
 
         UpdateHeaderListeners();
@@ -146,7 +108,7 @@ internal class Request : INotifyPropertyChanged, INotifyCollectionChanged
 
     private void Header_PropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        OnPropertyChanged(nameof(Headers));
+        Save();
     }
 
     public string ToJson()
@@ -184,12 +146,6 @@ internal class Request : INotifyPropertyChanged, INotifyCollectionChanged
             Name = "User-Agent",
             Value = "ApiMonkey/1.0"
         });
-    }
-
-    protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
-    {
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        Save();
     }
 
     internal static Request FromJson(string json, string path)
