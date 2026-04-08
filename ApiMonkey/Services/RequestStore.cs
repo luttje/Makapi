@@ -160,6 +160,8 @@ internal class RequestStore
             throw new InvalidOperationException("Request not found.");
         }
 
+        request.Delete();
+
         if (request.Collection != null)
         {
             request.Collection.Requests.Remove(request);
@@ -180,6 +182,8 @@ internal class RequestStore
         {
             throw new InvalidOperationException("Collection not found.");
         }
+
+        collection.Delete();
 
         _collections.Remove(collection);
 

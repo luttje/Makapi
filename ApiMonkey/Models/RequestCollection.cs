@@ -99,4 +99,9 @@ internal class RequestCollection : INotifyPropertyChanged
 
         return collection;
     }
+
+    internal void Delete()
+    {
+        Directory.Delete(Path, true);
+    }
 }

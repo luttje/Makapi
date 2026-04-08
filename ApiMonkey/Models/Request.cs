@@ -179,4 +179,9 @@ internal class Request : INotifyPropertyChanged, INotifyCollectionChanged
 
         return request;
     }
+
+    internal void Delete()
+    {
+        File.Delete(Path);
+    }
 }
