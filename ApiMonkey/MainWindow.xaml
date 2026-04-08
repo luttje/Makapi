@@ -30,10 +30,6 @@
             </TitleBar.IconSource>
 
             <TitleBar.Content>
-                <!--
-                    TODO: https://github.com/microsoft/WinUI-Gallery/blob/d1441382f46265a6606c9afbd2096391ba93bd5d/WinUIGallery/MainWindow.xaml.cs#L389
-                    QuerySubmitted="RequestsSearchBox_QuerySubmitted"
-                -->
                 <AutoSuggestBox x:Name="RequestsSearchBox"
                                 Width="320"
                                 HorizontalAlignment="Stretch"
@@ -41,7 +37,16 @@
                                 KeyboardAcceleratorPlacementMode="Hidden"
                                 PlaceholderText="Search requests..."
                                 QueryIcon="Find"
-                                TextChanged="RequestsSearchBox_TextChanged">
+                                TextMemberPath="DisplayText"
+                                TextChanged="RequestsSearchBox_TextChanged"
+                                QuerySubmitted="RequestsSearchBox_QuerySubmitted">
+                    <AutoSuggestBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding DisplayText}" 
+                                       TextWrapping="NoWrap"
+                                       TextTrimming="CharacterEllipsis"/>
+                        </DataTemplate>
+                    </AutoSuggestBox.ItemTemplate>
                     <AutoSuggestBox.KeyboardAccelerators>
                         <KeyboardAccelerator
                             Key="F"

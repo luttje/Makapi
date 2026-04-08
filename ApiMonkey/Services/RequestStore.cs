@@ -192,4 +192,16 @@ public class RequestStore
 
         CollectionRemoved?.Invoke(collection);
     }
+
+    internal IEnumerable<Request> GetAllRequests()
+    {
+        foreach (var request in _rootRequests)
+            yield return request;
+
+        foreach (var collection in _collections)
+        {
+            foreach (var request in collection.Requests)
+                yield return request;
+        }
+    }
 }

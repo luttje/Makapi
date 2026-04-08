@@ -291,26 +291,150 @@ namespace ApiMonkey
             RequestsNavigationView.IsPaneOpen = !RequestsNavigationView.IsPaneOpen;
         }
 
+        private List<SearchResult> SearchRequests(string searchText)
+        {
+            if (string.IsNullOrWhiteSpace(searchText))
+                return [];
+
+            var results = new List<SearchResult>();
+            var searchLower = searchText.ToLower();
+
+            // Get all requests from root and collections
+            var allRequests = _requestStore.GetAllRequests();
+
+            foreach (var request in allRequests)
+            {
+                var matchScore = 0;
+                var matchDetails = new List<string>();
+
+                // Search in name (highest priority)
+                if (request.Name?.Contains(searchText, StringComparison.OrdinalIgnoreCase) == true)
+                {
+                    matchScore += request.Name.StartsWith(searchText, StringComparison.OrdinalIgnoreCase) ? 100 : 50;
+                    matchDetails.Add("name");
+                }
+
+                // Search in URL
+                if (request.Url?.Contains(searchText, StringComparison.OrdinalIgnoreCase) == true)
+                {
+                    matchScore += 30;
+                    matchDetails.Add("url");
+                }
+
+                // Search in headers
+                foreach (var header in request.Headers)
+                {
+                    if (header.Name?.Contains(searchText, StringComparison.OrdinalIgnoreCase) == true ||
+                        header.Value?.Contains(searchText, StringComparison.OrdinalIgnoreCase) == true)
+                    {
+                        matchScore += 10;
+                        if (!matchDetails.Contains("headers"))
+                            matchDetails.Add("headers");
+                    }
+                }
+
+                // Search in body
+                if (request.Body?.Contains(searchText, StringComparison.OrdinalIgnoreCase) == true)
+                {
+                    matchScore += 20;
+                    matchDetails.Add("body");
+                }
+
+                if (matchScore > 0)
+                {
+                    var collectionPrefix = request.Collection != null ? $"{request.Collection.Name} / " : "";
+                    var displayText = $"{collectionPrefix}{request.Name ?? "Unnamed"} ({string.Join(", ", matchDetails)})";
+                    results.Add(new SearchResult(request, displayText, matchScore));
+                }
+            }
+
+            return results.OrderByDescending(r => r.MatchScore).ToList();
+        }
+
         private void RequestsSearchBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
         {
             if (args.Reason == AutoSuggestionBoxTextChangeReason.UserInput)
             {
-                // TODO: Put a record type in this list instead and search by more than just name (e.g. url, headers, body, etc.)
-                var suggestions = new List<string>();
+                var searchResults = SearchRequests(sender.Text);
 
-                if (suggestions.Count > 0)
+                if (searchResults.Count > 0)
                 {
-                    RequestsSearchBox.ItemsSource = suggestions
-                        .OrderByDescending(i => i.StartsWith(sender.Text, StringComparison.CurrentCultureIgnoreCase))
-                        .ThenBy(i => i)
-                        .ToList();
+                    RequestsSearchBox.ItemsSource = searchResults;
+                }
+                else if (!string.IsNullOrWhiteSpace(sender.Text))
+                {
+                    RequestsSearchBox.ItemsSource = new[]
+                    {
+                        new FakeSearchResult("No results found")
+                    };
                 }
                 else
                 {
-                    // RequestsSearchBox.ItemsSource = new string[] { "No results found" };
-                    RequestsSearchBox.ItemsSource = new string[] { "Search functionality is not implemented yet" };
+                    RequestsSearchBox.ItemsSource = null;
                 }
             }
+        }
+
+        private void RequestsSearchBox_QuerySubmitted(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args)
+        {
+            if (args.ChosenSuggestion is SearchResult result)
+            {
+                // Find the menu item for the selected request and open it
+                var menuItem = FindMenuItemForRequest(result.Request.Id);
+                if (menuItem != null)
+                {
+                    OpenMenuItem(menuItem);
+                    sender.Text = string.Empty;
+                    sender.ItemsSource = null;
+                }
+            }
+            else if (args.ChosenSuggestion is FakeSearchResult)
+            {
+                // Do nothing when the "No results found" item is selected
+                sender.Text = string.Empty;
+                sender.ItemsSource = null;
+            }
+            else if (!string.IsNullOrWhiteSpace(args.QueryText))
+            {
+                // User pressed Enter without selecting a suggestion, open the first result
+                var searchResults = SearchRequests(args.QueryText);
+                if (searchResults.Count > 0)
+                {
+                    var menuItem = FindMenuItemForRequest(searchResults[0].Request.Id);
+                    if (menuItem != null)
+                    {
+                        OpenMenuItem(menuItem);
+                        sender.Text = string.Empty;
+                        sender.ItemsSource = null;
+                    }
+                }
+            }
+        }
+
+        private NavigationViewItem? FindMenuItemForRequest(string requestId)
+        {
+            // Search in root menu items
+            var menuItem = _menuItems.OfType<NavigationViewItem>()
+                .FirstOrDefault(item => item.Tag is FrameOpener opener &&
+                                        opener.PageType == typeof(WebRequestPage) &&
+                                        opener.Parameter as string == requestId);
+
+            if (menuItem != null)
+                return menuItem;
+
+            // Search within collection menu items
+            foreach (var collectionMenuItem in _collectionMenuItems.Values)
+            {
+                menuItem = collectionMenuItem.MenuItems.OfType<NavigationViewItem>()
+                    .FirstOrDefault(item => item.Tag is FrameOpener opener &&
+                                            opener.PageType == typeof(WebRequestPage) &&
+                                            opener.Parameter as string == requestId);
+
+                if (menuItem != null)
+                    return menuItem;
+            }
+
+            return null;
         }
 
         private async void RootGrid_Loaded(object sender, RoutedEventArgs e)
