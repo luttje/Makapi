@@ -13,29 +13,65 @@
         <MicaBackdrop />
     </Window.SystemBackdrop>
 
-    <NavigationView x:Name="RequestsNavigationView"
-                    IsBackButtonVisible="Collapsed"
-                    IsSettingsVisible="False"
-                    SelectionChanged="RequestsNavigationView_SelectionChanged"
-                    IsRightTapEnabled="True"
-                    RightTapped="RequestsNavigationView_RightTapped">
-        <NavigationView.Resources>
-            <CommandBarFlyout Placement="Right" 
-                              AlwaysExpanded="True"
-                              x:Name="ContextCommandBarFlyout">
-                <AppBarButton Label="Delete" 
-                              Icon="Delete" 
-                              ToolTipService.ToolTip="Delete"
-                              Click="ContextDeleteButton_Click"/>
-            </CommandBarFlyout>
-        </NavigationView.Resources>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
 
-        <NavigationView.AutoSuggestBox>
-            <AutoSuggestBox QueryIcon="Find" 
-                            AutomationProperties.Name="Search" />
-        </NavigationView.AutoSuggestBox>
+        <TitleBar x:Name="TitleBar"
+                  Title="ApiMonkey"
+                  IsBackButtonVisible="False"
+                  PaneToggleRequested="TitleBar_PaneToggleRequested"
+                  IsPaneToggleButtonVisible="True">
+            <TitleBar.IconSource>
+                <ImageIconSource ImageSource="/Assets/Icon.ico" />
+            </TitleBar.IconSource>
 
-        <Frame x:Name="MainFrame" 
-               Grid.Row="1" />
-    </NavigationView>
+            <TitleBar.Content>
+                <!--
+                    TODO: https://github.com/microsoft/WinUI-Gallery/blob/d1441382f46265a6606c9afbd2096391ba93bd5d/WinUIGallery/MainWindow.xaml.cs#L389
+                    QuerySubmitted="RequestsSearchBox_QuerySubmitted"
+                -->
+                <AutoSuggestBox x:Name="RequestsSearchBox"
+                                Width="320"
+                                HorizontalAlignment="Stretch"
+                                VerticalAlignment="Center"
+                                KeyboardAcceleratorPlacementMode="Hidden"
+                                PlaceholderText="Search requests..."
+                                QueryIcon="Find"
+                                TextChanged="RequestsSearchBox_TextChanged">
+                    <AutoSuggestBox.KeyboardAccelerators>
+                        <KeyboardAccelerator
+                            Key="F"
+                            Invoked="CtrlF_Invoked"
+                            Modifiers="Control" />
+                    </AutoSuggestBox.KeyboardAccelerators>
+                </AutoSuggestBox>
+            </TitleBar.Content>
+        </TitleBar>
+        
+        <NavigationView x:Name="RequestsNavigationView"
+                        IsBackButtonVisible="Collapsed"
+                        IsSettingsVisible="False"
+                        IsPaneToggleButtonVisible="False"
+                        SelectionChanged="RequestsNavigationView_SelectionChanged"
+                        IsRightTapEnabled="True"
+                        RightTapped="RequestsNavigationView_RightTapped"
+                        Grid.Row="1">
+            <NavigationView.Resources>
+                <CommandBarFlyout Placement="Right" 
+                                  AlwaysExpanded="True"
+                                  x:Name="ContextCommandBarFlyout">
+                    <AppBarButton Label="Delete" 
+                                  Icon="Delete" 
+                                  ToolTipService.ToolTip="Delete"
+                                  Click="ContextDeleteButton_Click"/>
+                </CommandBarFlyout>
+            </NavigationView.Resources>
+
+            <Frame x:Name="MainFrame" 
+                   Grid.Row="1" />
+        </NavigationView>
+    </Grid>
 </Window>

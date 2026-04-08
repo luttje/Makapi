@@ -35,6 +35,9 @@ namespace ApiMonkey
         {
             InitializeComponent();
 
+            ExtendsContentIntoTitleBar = true;
+            SetTitleBar(TitleBar);
+
             InitializeMenuItems();
 
             RequestStore.Instance.RequestAdded += RequestStore_RequestAdded;
@@ -272,6 +275,38 @@ namespace ApiMonkey
             else if (opener.PageType == typeof(CollectionPage))
             {
                 RequestStore.Instance.DeleteCollection(id);
+            }
+        }
+
+        private void CtrlF_Invoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
+        {
+            RequestsSearchBox.Focus(FocusState.Programmatic);
+        }
+
+        private void TitleBar_PaneToggleRequested(TitleBar sender, object args)
+        {
+            RequestsNavigationView.IsPaneOpen = !RequestsNavigationView.IsPaneOpen;
+        }
+
+        private void RequestsSearchBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
+        {
+            if (args.Reason == AutoSuggestionBoxTextChangeReason.UserInput)
+            {
+                // TODO: Put a record type in this list instead and search by more than just name (e.g. url, headers, body, etc.)
+                var suggestions = new List<string>();
+
+                if (suggestions.Count > 0)
+                {
+                    RequestsSearchBox.ItemsSource = suggestions
+                        .OrderByDescending(i => i.StartsWith(sender.Text, StringComparison.CurrentCultureIgnoreCase))
+                        .ThenBy(i => i)
+                        .ToList();
+                }
+                else
+                {
+                    // RequestsSearchBox.ItemsSource = new string[] { "No results found" };
+                    RequestsSearchBox.ItemsSource = new string[] { "Search functionality is not implemented yet" };
+                }
             }
         }
     }
