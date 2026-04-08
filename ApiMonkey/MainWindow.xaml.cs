@@ -38,8 +38,6 @@ namespace ApiMonkey
             ExtendsContentIntoTitleBar = true;
             SetTitleBar(TitleBar);
 
-            InitializeMenuItems();
-
             RequestStore.Instance.RequestAdded += RequestStore_RequestAdded;
             RequestStore.Instance.RequestRemoved += RequestStore_RequestRemoved;
             RequestStore.Instance.CollectionAdded += RequestStore_CollectionAdded;
@@ -193,7 +191,7 @@ namespace ApiMonkey
             AddPermanentMenuItem(new NavigationViewItem
             {
                 Content = "New Collection",
-                Tag = new CollectionCreator(),
+                Tag = new CollectionCreator(RootGrid.XamlRoot),
                 Icon = new SymbolIcon(Symbol.NewFolder)
             });
 
@@ -207,6 +205,8 @@ namespace ApiMonkey
                 Tag = new FrameOpener(MainFrame, typeof(SettingsPage)),
                 Icon = new SymbolIcon(Symbol.Setting)
             });
+
+            RequestStore.Instance.LoadRequestsFromDisk();
         }
 
         private void RequestsNavigationView_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
@@ -308,6 +308,11 @@ namespace ApiMonkey
                     RequestsSearchBox.ItemsSource = new string[] { "Search functionality is not implemented yet" };
                 }
             }
+        }
+
+        private void RootGrid_Loaded(object sender, RoutedEventArgs e)
+        {
+            InitializeMenuItems();
         }
     }
 }

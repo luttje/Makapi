@@ -1,19 +1,20 @@
 ﻿using ApiMonkey.Models;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace ApiMonkey.Services;
 
-internal delegate void RequestEeventHandler(Request request);
+internal delegate void RequestEventHandler(Request request);
 internal delegate void CollectionEventHandler(RequestCollection collection);
 
 internal class RequestStore
 {
-    public event RequestEeventHandler? RequestAdded;
-    public event RequestEeventHandler? RequestRemoved;
+    public event RequestEventHandler? RequestAdded;
+    public event RequestEventHandler? RequestRemoved;
     public event CollectionEventHandler? CollectionAdded;
     public event CollectionEventHandler? CollectionRemoved;
 
@@ -32,6 +33,58 @@ internal class RequestStore
         }
     }
 
+    internal void LoadRequestsFromDisk()
+    {
+        var roots = SettingsManager.Settings.RequestRoots;
+
+        foreach (var root in roots)
+        {
+            LoadRequestsFromDirectory(root);
+        }
+    }
+
+    private void LoadRequestsFromDirectory(string directory)
+    {
+        if (!Directory.Exists(directory))
+            return;
+
+        var requestFiles = Directory.GetFiles(directory, $"*.{Request.EXTENSION}", SearchOption.AllDirectories);
+
+        // Find collections, then load them
+        var collectionInfos = Directory.GetFiles(directory, $"*.{RequestCollection.EXTENSION}", SearchOption.AllDirectories);
+        var collectionDirectories = new Dictionary<string, RequestCollection>();
+
+        foreach (var collectionInfoFile in collectionInfos)
+        {
+            var collectionDirectory = Path.GetDirectoryName(collectionInfoFile);
+
+            var json = File.ReadAllText(collectionInfoFile);
+            var collection = RequestCollection.FromJson(json, collectionDirectory);
+
+            collectionDirectories.Add(collectionDirectory, collection);
+
+            _collections.Add(collection);
+            CollectionAdded?.Invoke(collection);
+        }
+
+        // Load requests afterwards, so they fill into their collections if needed
+        foreach (var file in requestFiles)
+        {
+            // TODO: Implement version check and guard against corrupted files
+            var json = File.ReadAllText(file);
+            var request = Request.FromJson(json, file);
+            var fileDirectory = Path.GetDirectoryName(file);
+
+            if (collectionDirectories.TryGetValue(fileDirectory, out var collection))
+            {
+                request.Collection = collection;
+            }
+
+            _rootRequests.Add(request);
+            RequestAdded?.Invoke(request);
+        }
+    }
+
     internal Request CreateRequest(RequestCollection? collection = null)
     {
         var request = new Request(collection);
@@ -46,9 +99,9 @@ internal class RequestStore
         return request;
     }
 
-    internal RequestCollection CreateCollection()
+    internal RequestCollection CreateCollection(string path)
     {
-        var collection = new RequestCollection();
+        var collection = new RequestCollection(path);
 
         _collections.Add(collection);
 

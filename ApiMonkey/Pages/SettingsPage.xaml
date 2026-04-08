@@ -6,12 +6,75 @@
     xmlns:local="using:ApiMonkey"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:models="using:ApiMonkey.Models"
+    xmlns:toolkit="using:CommunityToolkit.WinUI.Controls"
     mc:Ignorable="d">
 
-    <Grid>
-        <TextBlock Text="Settings Page"
-                   HorizontalAlignment="Center"
-                   VerticalAlignment="Center"
-                   FontSize="24" />
+    <Grid Margin="36,24,36,0">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <TextBlock Style="{StaticResource TitleTextBlockStyle}">
+            Settings
+        </TextBlock>
+        
+        <ScrollViewer Grid.Row="1">
+            <StackPanel Orientation="Vertical"
+                        MaxWidth="1064">
+                <toolkit:SettingsExpander Header="Request Save Locations"
+                                          Description="Determines where ApiMonkey looks for saved request files.">
+                    <toolkit:SettingsExpander.HeaderIcon>
+                        <FontIcon Glyph="&#xED25;" />
+                    </toolkit:SettingsExpander.HeaderIcon>
+
+                    <toolkit:SettingsExpander.Items>
+                        <toolkit:SettingsCard ContentAlignment="Vertical"
+                                              HorizontalContentAlignment="Stretch">
+                            <StackPanel Spacing="8">
+                                <ListView x:Name="RequestRootsListView"
+                                          SelectionMode="None"
+                                          HorizontalAlignment="Stretch">
+                                    <ListView.ItemContainerStyle>
+                                        <Style TargetType="ListViewItem" BasedOn="{StaticResource DefaultListViewItemStyle}">
+                                            <Setter Property="Padding" Value="0" />
+                                            <Setter Property="Margin" Value="0,4,0,0" />
+                                            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                                        </Style>
+                                    </ListView.ItemContainerStyle>
+                                    
+                                    <ListView.ItemTemplate>
+                                        <DataTemplate x:DataType="models:ChangingValueContainer">
+                                            <Grid ColumnSpacing="8">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto" />
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                </Grid.ColumnDefinitions>
+                                                
+                                                <Button Grid.Column="0"
+                                                        Content="&#xE711;"
+                                                        FontFamily="{ThemeResource SymbolThemeFontFamily}"
+                                                        Click="RemovePathButton_Click" />
+                                                <TextBox Grid.Column="1"
+                                                         Text="{x:Bind Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                         PlaceholderText="Enter path..." />
+                                                <Button Grid.Column="2"
+                                                        Content="Browse"
+                                                        Click="BrowseButton_Click" />
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ListView.ItemTemplate>
+                                </ListView>
+
+                                <Button Content="Add path"
+                                        Click="AddPathButton_Click" />
+                            </StackPanel>
+                        </toolkit:SettingsCard>
+                    </toolkit:SettingsExpander.Items>
+                </toolkit:SettingsExpander>
+            </StackPanel>
+        </ScrollViewer>
     </Grid>
 </Page>

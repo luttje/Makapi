@@ -9,6 +9,7 @@ using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
@@ -40,4 +41,17 @@ public sealed partial class CollectionPage : Page
         CurrentCollection = RequestStore.Instance.GetCollectionById(collectionId);
     }
 
+    private void OpenCollectionFolderButton_Click(object sender, RoutedEventArgs e)
+    {
+        var path = CurrentCollection.Path;
+
+        // Evaluate the path, as it may have been changed by Windows (e.g: by scoping the app to a specific folder)
+        path = Path.GetFullPath(path);
+
+        Process.Start(new ProcessStartInfo
+        {
+            FileName = path,
+            UseShellExecute = true,
+        });
+    }
 }

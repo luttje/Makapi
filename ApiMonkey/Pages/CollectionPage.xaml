@@ -9,7 +9,7 @@
     mc:Ignorable="d">
 
 
-    <Grid Padding="5">
+    <Grid Margin="36,24,36,24">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
@@ -24,13 +24,23 @@
         <Grid Grid.ColumnSpan="2"
               Padding="5">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
 
-            <TextBox Header="Collection Name"
-                     Text="{x:Bind CurrentCollection.Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+            <TextBox Text="{x:Bind CurrentCollection.Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                     FontSize="24"
+                     FontWeight="Black"
+                     Background="Transparent"
+                     BorderThickness="0"
+                     Margin="-10,0,0,0"
                      MinWidth="400"/>
+
+            <Button Grid.Column="1"
+                    Margin="10,0,0,0"
+                    Content="Open Collection Folder"
+                    Click="OpenCollectionFolderButton_Click"
+                    VerticalAlignment="Bottom" />
         </Grid>
     </Grid>
 </Page>
