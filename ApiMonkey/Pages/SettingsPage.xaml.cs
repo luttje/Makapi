@@ -44,9 +44,7 @@ public sealed partial class SettingsPage : Page
         {
             if (args.PropertyName == nameof(ChangingValueContainer.Value))
             {
-                SettingsManager.Settings.RequestRoots = _requestRoots.Select(r => r.Value!)
-                    .ToList();
-                SettingsManager.Save();
+                UpdateRoots();
             }
         };
 
@@ -55,9 +53,15 @@ public sealed partial class SettingsPage : Page
 
     private void RequestRoots_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
+        UpdateRoots();
+    }
+
+    private void UpdateRoots()
+    { 
         SettingsManager.Settings.RequestRoots = _requestRoots.Select(r => r.Value!)
             .ToList();
         SettingsManager.Save();
+        MainWindow.Current.RefreshMenuItems();
     }
 
     private void AddPathButton_Click(object sender, RoutedEventArgs e)

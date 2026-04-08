@@ -25,15 +25,18 @@ namespace ApiMonkey
 {
     public sealed partial class MainWindow : Window
     {
-        private readonly ObservableCollection<NavigationViewItemBase> _menuItems = [];
-        private readonly List<NavigationViewItemBase> _permanentItems = [];
+        public static MainWindow Current { get; private set; } = null!;
 
+        private readonly ObservableCollection<NavigationViewItemBase> _menuItems = [];
         private readonly Dictionary<string, NavigationViewItem> _collectionMenuItems = [];
         private NavigationViewItem? _contextMenuItem;
+        private bool _noAutoOpen = false;
 
         public MainWindow()
         {
             InitializeComponent();
+
+            Current = this;
 
             ExtendsContentIntoTitleBar = true;
             SetTitleBar(TitleBar);
@@ -63,7 +66,8 @@ namespace ApiMonkey
                 menuItem = AddRequestMenuItem(request);
             }
 
-            OpenMenuItem(menuItem);
+            if (!_noAutoOpen)
+                OpenMenuItem(menuItem);
         }
 
         private void RequestStore_RequestRemoved(Request request)
@@ -98,7 +102,9 @@ namespace ApiMonkey
         private void RequestStore_CollectionAdded(RequestCollection collection)
         {
             var menuItem = AddCollectionMenuItem(collection);
-            OpenMenuItem(menuItem);
+
+            if (!_noAutoOpen)
+                OpenMenuItem(menuItem);
         }
 
         private void RequestStore_CollectionRemoved(RequestCollection collection)
@@ -111,14 +117,7 @@ namespace ApiMonkey
                 _collectionMenuItems.Remove(collection.Id);
             }
         }
-
-        private NavigationViewItemBase AddPermanentMenuItem(NavigationViewItemBase menuItem)
-        {
-            _permanentItems.Add(menuItem);
-            _menuItems.Add(menuItem);
-            return menuItem;
-        }
-
+        
         private NavigationViewItem AddRequestMenuItem(Request request, IList<object>? parent = null)
         {
             var menuItem = new NavigationViewItem
@@ -177,25 +176,27 @@ namespace ApiMonkey
             return menuItem;
         }
 
-        private void InitializeMenuItems()
+        public void RefreshMenuItems()
         {
             _menuItems.Clear();
+            _collectionMenuItems.Clear();
+            RequestsNavigationView.FooterMenuItems.Clear();
 
-            AddPermanentMenuItem(new NavigationViewItem
+            _menuItems.Add(new NavigationViewItem
             {
                 Content = "New Request",
                 Tag = new RequestCreator(),
                 Icon = new SymbolIcon(Symbol.Add)
             });
 
-            AddPermanentMenuItem(new NavigationViewItem
+            _menuItems.Add(new NavigationViewItem
             {
                 Content = "New Collection",
                 Tag = new CollectionCreator(RootGrid.XamlRoot),
                 Icon = new SymbolIcon(Symbol.NewFolder)
             });
 
-            AddPermanentMenuItem(new NavigationViewItemSeparator());
+            _menuItems.Add(new NavigationViewItemSeparator());
 
             RequestsNavigationView.MenuItemsSource = _menuItems;
 
@@ -206,7 +207,9 @@ namespace ApiMonkey
                 Icon = new SymbolIcon(Symbol.Setting)
             });
 
+            _noAutoOpen = true;
             RequestStore.Instance.LoadRequestsFromDisk();
+            _noAutoOpen = false;
         }
 
         private void RequestsNavigationView_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
@@ -312,7 +315,7 @@ namespace ApiMonkey
 
         private void RootGrid_Loaded(object sender, RoutedEventArgs e)
         {
-            InitializeMenuItems();
+            RefreshMenuItems();
         }
     }
 }
