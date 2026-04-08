@@ -2,6 +2,8 @@
 using ApiMonkey.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
+using Microsoft.Extensions.DependencyInjection;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -11,6 +13,8 @@ namespace ApiMonkey.Pages;
 
 public partial class WebRequestPageViewModel : ObservableObject
 {
+    private readonly RequestStore _requestStore;
+
     public IReadOnlyList<string> Methods { get; } =
     [
         "GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"
@@ -34,9 +38,14 @@ public partial class WebRequestPageViewModel : ObservableObject
     public ObservableCollection<HeaderEntry> RequestHeaders { get; } = [];
     public ObservableCollection<Header> ResponseHeaders { get; } = [];
 
+    public WebRequestPageViewModel()
+    {
+        _requestStore = App.Services.GetRequiredService<RequestStore>();
+    }
+
     public void LoadRequest(string requestId)
     {
-        Request = RequestStore.Instance.GetRequestById(requestId);
+        Request = _requestStore.GetRequestById(requestId);
 
         foreach (var header in Request.Headers)
         {

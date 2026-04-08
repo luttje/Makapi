@@ -61,12 +61,12 @@ public partial class Request
     [JsonConstructor]
     private Request() { }
 
-    public Request(RequestCollection? collection = null)
+    public Request(RequestCollection? collection, string defaultRequestsPath)
     {
         Id = Guid.NewGuid().ToString();
         Path = collection?.Path != null
             ? System.IO.Path.Combine(collection.Path, $"{Id}.{EXTENSION}")
-            : System.IO.Path.Combine(SettingsManager.GetDefaultRequestsPath(), $"{Id}.{EXTENSION}");
+            : System.IO.Path.Combine(defaultRequestsPath, $"{Id}.{EXTENSION}");
         Name = "Unnamed Request";
         Collection = collection;
         Method = "GET";

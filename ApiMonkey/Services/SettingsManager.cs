@@ -10,23 +10,11 @@ using System.Threading.Tasks;
 
 namespace ApiMonkey.Services
 {
-    internal class SettingsManager
+    public class SettingsManager
     {
         private const int MAX_COLLECTIONS = 1_000_000_000;
 
-        private static SettingsManager? _instance;
-        public static SettingsManager Instance
-        {
-            get
-            {
-                if (_instance == null)
-                    _instance = new SettingsManager();
-
-                return _instance;
-            }
-        }
-
-        public static SettingsData Settings => Instance.settings;
+        public SettingsData Settings => settings;
 
         private SettingsData settings;
         private readonly JsonSerializerOptions _saveJsonOptions = new()
@@ -34,14 +22,14 @@ namespace ApiMonkey.Services
             WriteIndented = true
         };
 
-        private SettingsManager()
+        public SettingsManager()
         {
             LoadSettingsFromDisk(GetSettingsPath());
         }
 
-        public static void Save()
+        public void Save()
         {
-            Instance.SaveSettingsToDisk(GetSettingsPath());
+            SaveSettingsToDisk(GetSettingsPath());
         }
 
         private void LoadSettingsFromDisk(string path)
@@ -62,7 +50,7 @@ namespace ApiMonkey.Services
             SaveSettingsToDisk(path);
         }
 
-        internal static string GetDefaultRequestsPath()
+        internal string GetDefaultRequestsPath()
         {
             return Path.Combine(GetCreateSettingsDirectory(), "requests");
         }
@@ -73,7 +61,7 @@ namespace ApiMonkey.Services
             File.WriteAllText(path, json);
         }
 
-        internal static string GetNewCollectionPath()
+        internal string GetNewCollectionPath()
         {
             var settingsDir = GetCreateSettingsDirectory();
             var collectionsDir = Path.Combine(settingsDir, "collections");
@@ -91,7 +79,7 @@ namespace ApiMonkey.Services
             return collectionsDir;
         }
 
-        internal static string GetSettingsPath()
+        internal string GetSettingsPath()
         {
             var settingsDir = GetCreateSettingsDirectory();
             return Path.Combine(settingsDir, "settings.json");

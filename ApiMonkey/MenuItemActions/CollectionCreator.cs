@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace ApiMonkey.MenuItemActions;
 
-internal class CollectionCreator(XamlRoot xamlRoot) : IMenuItemAction
+internal class CollectionCreator(XamlRoot xamlRoot, RequestStore requestStore, SettingsManager settingsManager) : IMenuItemAction
 {
     // Show a dialog to ask for the path to where the collection should be created, then create the collection and save it to disk
     async void IMenuItemAction.Execute()
@@ -21,7 +21,7 @@ internal class CollectionCreator(XamlRoot xamlRoot) : IMenuItemAction
         if (path == null)
             return;
 
-        RequestStore.Instance.CreateCollection(path);
+        requestStore.CreateCollection(path);
     }
 
     private async Task<string?> ShowDialogFor()
@@ -72,7 +72,7 @@ internal class CollectionCreator(XamlRoot xamlRoot) : IMenuItemAction
 
         panel.Children.Add(grid);
 
-        var defaultPath = SettingsManager.GetNewCollectionPath();
+        var defaultPath = settingsManager.GetNewCollectionPath();
         dialog.Tag = defaultPath;
 
         var textBox = new TextBox

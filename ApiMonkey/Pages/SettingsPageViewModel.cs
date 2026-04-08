@@ -1,7 +1,10 @@
-﻿using ApiMonkey.Models;
+﻿using ApiMonkey.Messages;
+using ApiMonkey.Models;
 using ApiMonkey.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Microsoft.Windows.Storage.Pickers;
 using System;
@@ -19,6 +22,9 @@ namespace ApiMonkey.Pages;
 [ObservableObject]
 public partial class SettingsPageViewModel
 {
+    private readonly SettingsManager _settingsManager;
+    private readonly IMessenger _messenger;
+
     [ObservableProperty]
     public partial XamlRoot? XamlRoot { get; set; }
 
@@ -26,8 +32,11 @@ public partial class SettingsPageViewModel
 
     public SettingsPageViewModel()
     {
+        _settingsManager = App.Services.GetRequiredService<SettingsManager>();
+        _messenger = App.Services.GetRequiredService<IMessenger>();
+
         RequestRoots = new ObservableCollection<RequestRootEntry>(
-            SettingsManager.Settings.RequestRoots
+            _settingsManager.Settings.RequestRoots
                 .Select(r => MakeEntry(r))
         );
 
@@ -87,13 +96,13 @@ public partial class SettingsPageViewModel
 
     private void Persist()
     {
-        SettingsManager.Settings.RequestRoots = RequestRoots
+        _settingsManager.Settings.RequestRoots = RequestRoots
             .Select(r => r.Container.Value!)
             .Where(v => !string.IsNullOrWhiteSpace(v))
             .Distinct()
             .ToList();
 
-        SettingsManager.Save();
-        MainWindow.Current.RefreshMenuItems();
+        _settingsManager.Save();
+        _messenger.Send(new SettingsChangedMessage());
     }
 }

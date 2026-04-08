@@ -8,10 +8,10 @@ using System.Threading.Tasks;
 
 namespace ApiMonkey.Services;
 
-internal delegate void RequestEventHandler(Request request);
-internal delegate void CollectionEventHandler(RequestCollection collection);
+public delegate void RequestEventHandler(Request request);
+public delegate void CollectionEventHandler(RequestCollection collection);
 
-internal class RequestStore
+public class RequestStore
 {
     public event RequestEventHandler? RequestAdded;
     public event RequestEventHandler? RequestRemoved;
@@ -20,22 +20,16 @@ internal class RequestStore
 
     private readonly List<Request> _rootRequests = [];
     private readonly List<RequestCollection> _collections = [];
+    private readonly SettingsManager _settingsManager;
 
-    private static RequestStore? _instance;
-    public static RequestStore Instance
+    public RequestStore(SettingsManager settingsManager)
     {
-        get
-        {
-            if (_instance == null)
-                _instance = new RequestStore();
-
-            return _instance;
-        }
+        _settingsManager = settingsManager;
     }
 
     internal void LoadRequestsFromDisk()
     {
-        var roots = SettingsManager.Settings.RequestRoots;
+        var roots = _settingsManager.Settings.RequestRoots;
 
         foreach (var root in roots)
         {
@@ -87,7 +81,7 @@ internal class RequestStore
 
     internal Request CreateRequest(RequestCollection? collection = null)
     {
-        var request = new Request(collection);
+        var request = new Request(collection, _settingsManager.GetDefaultRequestsPath());
 
         if (collection != null)
             collection.Requests.Add(request);
@@ -101,7 +95,7 @@ internal class RequestStore
 
     internal RequestCollection CreateCollection(string path)
     {
-        var collection = new RequestCollection(path);
+        var collection = new RequestCollection(path, _settingsManager);
 
         _collections.Add(collection);
 

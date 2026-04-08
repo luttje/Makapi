@@ -1,5 +1,6 @@
 using ApiMonkey.Models;
 using ApiMonkey.Services;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
@@ -21,9 +22,12 @@ namespace ApiMonkey.Pages;
 public sealed partial class CollectionPage : Page
 {
     internal CollectionPageViewModel ViewModel { get; } = new();
+    private readonly RequestStore _requestStore;
 
     public CollectionPage()
     {
+        _requestStore = App.Services.GetRequiredService<RequestStore>();
+
         InitializeComponent();
     }
 
@@ -38,6 +42,6 @@ public sealed partial class CollectionPage : Page
             throw new ArgumentNullException(nameof(collectionId));
         }
 
-        ViewModel.CurrentCollection = RequestStore.Instance.GetCollectionById(collectionId);
+        ViewModel.CurrentCollection = _requestStore.GetCollectionById(collectionId);
     }
 }

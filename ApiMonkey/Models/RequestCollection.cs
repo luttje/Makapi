@@ -38,15 +38,15 @@ public partial class RequestCollection
     [JsonConstructor]
     private RequestCollection() { }
 
-    public RequestCollection(string path)
+    public RequestCollection(string path, SettingsManager settingsManager)
     {
         Id = Guid.NewGuid().ToString();
         Path = path;
         Name = "Unnamed Collection";
 
         // We add the path to the setting roots, so we can find the collection when we later open the app
-        SettingsManager.Settings.TryAddExclusiveRoot(path);
-        SettingsManager.Save();
+        settingsManager.Settings.TryAddExclusiveRoot(path);
+        settingsManager.Save();
 
         MarkReady();
         Save();

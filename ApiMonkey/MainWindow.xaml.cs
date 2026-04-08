@@ -1,7 +1,10 @@
 using ApiMonkey.MenuItemActions;
+using ApiMonkey.Messages;
 using ApiMonkey.Models;
 using ApiMonkey.Pages;
 using ApiMonkey.Services;
+using CommunityToolkit.Mvvm.Messaging;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
@@ -25,26 +28,29 @@ namespace ApiMonkey
 {
     public sealed partial class MainWindow : Window
     {
-        public static new MainWindow Current { get; private set; } = null!;
-
         private readonly ObservableCollection<NavigationViewItemBase> _menuItems = [];
         private readonly Dictionary<string, NavigationViewItem> _collectionMenuItems = [];
         private NavigationViewItem? _contextMenuItem;
         private bool _noAutoOpen = false;
+        private readonly RequestStore _requestStore;
+        private readonly IMessenger _messenger;
 
         public MainWindow()
         {
             InitializeComponent();
 
-            Current = this;
+            _requestStore = App.Services.GetRequiredService<RequestStore>();
+            _messenger = App.Services.GetRequiredService<IMessenger>();
+
+            _messenger.Register<SettingsChangedMessage>(this, (r, m) => RefreshMenuItems());
 
             ExtendsContentIntoTitleBar = true;
             SetTitleBar(TitleBar);
 
-            RequestStore.Instance.RequestAdded += RequestStore_RequestAdded;
-            RequestStore.Instance.RequestRemoved += RequestStore_RequestRemoved;
-            RequestStore.Instance.CollectionAdded += RequestStore_CollectionAdded;
-            RequestStore.Instance.CollectionRemoved += RequestStore_CollectionRemoved;
+            _requestStore.RequestAdded += RequestStore_RequestAdded;
+            _requestStore.RequestRemoved += RequestStore_RequestRemoved;
+            _requestStore.CollectionAdded += RequestStore_CollectionAdded;
+            _requestStore.CollectionRemoved += RequestStore_CollectionRemoved;
         }
 
         private void RequestStore_RequestAdded(Request request)
@@ -164,7 +170,7 @@ namespace ApiMonkey
             menuItem.MenuItems.Add(new NavigationViewItem
             {
                 Content = "New Request",
-                Tag = new CollectionRequestCreator(collection),
+                Tag = new CollectionRequestCreator(collection, _requestStore),
                 Icon = new SymbolIcon(Symbol.Add)
             });
 
@@ -185,14 +191,16 @@ namespace ApiMonkey
             _menuItems.Add(new NavigationViewItem
             {
                 Content = "New Request",
-                Tag = new RequestCreator(),
+                Tag = new RequestCreator(_requestStore),
                 Icon = new SymbolIcon(Symbol.Add)
             });
+
+            var settingsManager = App.Services.GetRequiredService<SettingsManager>();
 
             _menuItems.Add(new NavigationViewItem
             {
                 Content = "New Collection",
-                Tag = new CollectionCreator(RootGrid.XamlRoot),
+                Tag = new CollectionCreator(RootGrid.XamlRoot, _requestStore, settingsManager),
                 Icon = new SymbolIcon(Symbol.NewFolder)
             });
 
@@ -208,7 +216,7 @@ namespace ApiMonkey
             });
 
             _noAutoOpen = true;
-            RequestStore.Instance.LoadRequestsFromDisk();
+            _requestStore.LoadRequestsFromDisk();
             _noAutoOpen = false;
         }
 
@@ -273,11 +281,11 @@ namespace ApiMonkey
 
             if (opener.PageType == typeof(WebRequestPage))
             {
-                RequestStore.Instance.DeleteRequest(id);
+                _requestStore.DeleteRequest(id);
             }
             else if (opener.PageType == typeof(CollectionPage))
             {
-                RequestStore.Instance.DeleteCollection(id);
+                _requestStore.DeleteCollection(id);
             }
         }
 

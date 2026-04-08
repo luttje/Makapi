@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace ApiMonkey.MenuItemActions;
 
-internal class CollectionRequestCreator(RequestCollection collection) : IMenuItemAction
+internal class CollectionRequestCreator(RequestCollection collection, RequestStore requestStore) : IMenuItemAction
 {
-    void IMenuItemAction.Execute() => RequestStore.Instance.CreateRequest(collection);
+    void IMenuItemAction.Execute() => requestStore.CreateRequest(collection);
 }
