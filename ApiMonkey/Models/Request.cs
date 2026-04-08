@@ -88,6 +88,7 @@ internal class Request : INotifyPropertyChanged, INotifyCollectionChanged
         }
     }
 
+    [JsonInclude]
     public ObservableCollection<Header> Headers { get; private set; } = [];
     [JsonIgnore] public ApiResponse CachedResponse { get; internal set; }
 
@@ -114,6 +115,7 @@ internal class Request : INotifyPropertyChanged, INotifyCollectionChanged
         Body = "{\n  \"title\": \"foo\",\n  \"body\": \"bar\",\n  \"userId\": 1\n}";
 
         ResetToDefaultRequestHeaders();
+        UpdateHeaderListeners();
 
         MarkReady();
         Save();
@@ -124,7 +126,27 @@ internal class Request : INotifyPropertyChanged, INotifyCollectionChanged
     /// </summary>
     private void MarkReady()
     {
+        Headers.CollectionChanged += (sender, args) =>
+        {
+            UpdateHeaderListeners();
+            OnPropertyChanged(nameof(Headers));
+        };
+
+        UpdateHeaderListeners();
         _ready = true;
+    }
+
+    private void UpdateHeaderListeners()
+    {
+        foreach (var header in Headers)
+        {
+            header.PropertyChanged += Header_PropertyChanged;
+        }
+    }
+
+    private void Header_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        OnPropertyChanged(nameof(Headers));
     }
 
     public string ToJson()
@@ -141,7 +163,8 @@ internal class Request : INotifyPropertyChanged, INotifyCollectionChanged
             System.IO.Path.GetDirectoryName(Path) ?? throw new InvalidOperationException("Invalid request path")
         );
 
-        File.WriteAllText(Path, ToJson());
+        var json = ToJson();
+        File.WriteAllText(Path, json);
     }
 
     private void ResetToDefaultRequestHeaders()

@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Text.Json.Serialization;
 
 namespace ApiMonkey.Models;
 
@@ -34,6 +35,9 @@ public class Header : INotifyPropertyChanged
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
+
+    [JsonConstructor]
+    public Header() { }
 
     protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
     {
