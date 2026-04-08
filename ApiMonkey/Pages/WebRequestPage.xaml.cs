@@ -16,6 +16,7 @@ using System.Threading.Tasks;
 using System.Collections.ObjectModel;
 using ApiMonkey.Models;
 using ApiMonkey.Services;
+using System.ComponentModel;
 
 namespace ApiMonkey.Pages;
 
@@ -23,20 +24,31 @@ public sealed partial class WebRequestPage : Page
 {
     internal Request CurrentRequest { get; private set; }
 
-    private readonly ObservableCollection<Header> _requestHeaders = [];
     private readonly ObservableCollection<Header> _responseHeaders = [];
+    private readonly List<string> _methods = [];
 
     public WebRequestPage()
     {
         InitializeComponent();
 
-        RequestHeadersListView.ItemsSource = _requestHeaders;
+        ResetMethods();
+
         ResponseHeadersListView.ItemsSource = _responseHeaders;
+    }
 
-        // Put some test data in the request body
-        RequestBodyTextBox.Text = "{\n  \"title\": \"foo\",\n  \"body\": \"bar\",\n  \"userId\": 1\n}";
+    private void ResetMethods()
+    {
+        _methods.Clear();
 
-        FillDefaultRequestHeaders();
+        _methods.Add("GET");
+        _methods.Add("POST");
+        _methods.Add("PUT");
+        _methods.Add("DELETE");
+        _methods.Add("PATCH");
+        _methods.Add("HEAD");
+        _methods.Add("OPTIONS");
+
+        MethodComboBox.ItemsSource = _methods;
     }
 
     protected override void OnNavigatedTo(NavigationEventArgs e)
@@ -51,33 +63,37 @@ public sealed partial class WebRequestPage : Page
         }
 
         CurrentRequest = RequestStore.Instance.GetRequestById(requestId);
+
+        RequestHeadersListView.ItemsSource = CurrentRequest.Headers;
+
+        SetupActiveTab(RequestTabView, CurrentRequest.CurrentRequestTab);
+        SetupActiveTab(ResponseTabView, CurrentRequest.CurrentResponseTab);
+
+        if (CurrentRequest.CachedResponse != null)
+            LoadResponse(CurrentRequest.CachedResponse);
     }
 
-    private void FillDefaultRequestHeaders()
+    private void SetupActiveTab(TabView tabView, TabState currentResponseTab)
     {
-        _requestHeaders.Add(new Header
+        switch (currentResponseTab)
         {
-            Name = "Content-Type",
-            Value = "application/json"
-        });
-        _requestHeaders.Add(new Header
-        {
-            Name = "Accept",
-            Value = "application/json"
-        });
-        _requestHeaders.Add(new Header
-        {
-            Name = "User-Agent",
-            Value = "ApiMonkey/1.0"
-        });
+            case TabState.Headers:
+                tabView.SelectedItem = tabView == ResponseTabView ? ResponseHeadersTab : RequestHeadersTab;
+                break;
+            case TabState.Body:
+                tabView.SelectedItem = tabView == ResponseTabView ? ResponseBodyTab : RequestBodyTab;
+                break;
+            default:
+                break;
+        }
     }
 
     private async void SendButton_Click(object sender, RoutedEventArgs e)
     {
         var url = UrlTextBox.Text;
-        var selectedItem = MethodComboBox.SelectedItem as ComboBoxItem;
-        var method = selectedItem.Content as string ?? "GET";
-        var headers = _requestHeaders;
+        var selectedItem = MethodComboBox.SelectedItem as string;
+        var method = selectedItem ?? "GET";
+        var headers = CurrentRequest.Headers;
         var body = RequestBodyTextBox.Text;
 
         ResponseHeadersInfoBadge.Visibility = Visibility.Collapsed;
@@ -85,8 +101,14 @@ public sealed partial class WebRequestPage : Page
         _responseHeaders.Clear();
 
         var apiClient = new ApiClient();
-        var response = await apiClient.SendRequest(url, method, body, _requestHeaders.ToArray());
+        var response = await apiClient.SendRequest(url, method, body, CurrentRequest.Headers.ToArray());
+        CurrentRequest.CachedResponse = response;
 
+        LoadResponse(response);
+    }
+
+    private void LoadResponse(ApiResponse response)
+    { 
         ResponseTextBox.Text = response.Body;
 
         ResponseHeadersInfoBadge.Value = response.Headers.Count();
@@ -108,11 +130,29 @@ public sealed partial class WebRequestPage : Page
         if (header == null)
             return;
 
-        _requestHeaders.Remove(header);
+        CurrentRequest.Headers.Remove(header);
     }
 
     private void AddRequestHeaderButton_Click(object sender, RoutedEventArgs e)
     {
-        _requestHeaders.Add(new Header());
+        CurrentRequest.Headers.Add(new Header());
+    }
+
+    private void RequestTabView_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        var selectedTab = e.AddedItems.First() as TabViewItem ?? RequestBodyTab;
+
+        CurrentRequest.CurrentRequestTab = selectedTab == RequestBodyTab 
+            ? TabState.Body 
+            : TabState.Headers;
+    }
+
+    private void ResponseTabView_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        var selectedTab = e.AddedItems.First() as TabViewItem ?? ResponseBodyTab;
+
+        CurrentRequest.CurrentResponseTab = selectedTab == ResponseBodyTab 
+            ? TabState.Body 
+            : TabState.Headers;
     }
 }

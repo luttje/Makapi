@@ -56,22 +56,16 @@
                 </Grid.ColumnDefinitions>
 
                 <ComboBox x:Name="MethodComboBox" 
+                          SelectedItem="{x:Bind CurrentRequest.Method, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                           Grid.Column="0" 
                           Margin="5" 
-                          Width="100">
-                    <ComboBoxItem Content="GET" 
-                                  IsSelected="True" />
-                    <ComboBoxItem Content="POST" />
-                    <ComboBoxItem Content="PUT" />
-                    <ComboBoxItem Content="DELETE" />
-                    <ComboBoxItem Content="PATCH" />
-                </ComboBox>
+                          Width="100" />
 
                 <TextBox x:Name="UrlTextBox" 
                          Grid.Column="1" 
                          Margin="5" 
                          PlaceholderText="https://api.example.com/endpoint"
-                         Text="https://echo.free.beeceptor.com"/>
+                         Text="{x:Bind CurrentRequest.Url, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
 
                 <Button x:Name="SendButton" 
                         Grid.Column="2" 
@@ -82,9 +76,12 @@
 
             <!-- Request Data -->
             <TabView IsAddTabButtonVisible="False"
+                     x:Name="RequestTabView"
                      VerticalAlignment="Stretch"
+                     SelectionChanged="RequestTabView_SelectionChanged"
                      Grid.Row="2">
                 <TabViewItem Header="Headers"
+                             x:Name="RequestHeadersTab"
                              IsClosable="False">
                     <TabViewItem.IconSource>
                         <SymbolIconSource Symbol="List" />
@@ -136,7 +133,7 @@
                     </Grid>
                 </TabViewItem>
                 <TabViewItem Header="Body"
-                             IsSelected="True"
+                             x:Name="RequestBodyTab"
                              IsClosable="False">
                     <TabViewItem.IconSource>
                         <SymbolIconSource Symbol="Document" />
@@ -152,7 +149,8 @@
                                  Margin="5" 
                                  AcceptsReturn="True" 
                                  TextWrapping="Wrap" 
-                                 PlaceholderText="Request Body (for POST, PUT, PATCH)" />
+                                 PlaceholderText="Request Body (for POST, PUT, PATCH)"
+                                 Text="{x:Bind CurrentRequest.Body, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                     </Grid>
                 </TabViewItem>
             </TabView>
@@ -175,9 +173,12 @@
 
             <!-- Response Data -->
             <TabView IsAddTabButtonVisible="False"
+                     x:Name="ResponseTabView"
                      VerticalAlignment="Stretch"
+                     SelectionChanged="ResponseTabView_SelectionChanged"
                      Grid.Row="2">
-                <TabViewItem IsClosable="False">
+                <TabViewItem IsClosable="False"
+                             x:Name="ResponseHeadersTab">
                     <TabViewItem.IconSource>
                         <SymbolIconSource Symbol="List" />
                     </TabViewItem.IconSource>
@@ -214,7 +215,8 @@
                         </ListView.ItemTemplate>
                     </ListView>
                 </TabViewItem>
-                <TabViewItem IsClosable="False">
+                <TabViewItem IsClosable="False"
+                             x:Name="ResponseBodyTab">
                     <TabViewItem.IconSource>
                         <SymbolIconSource Symbol="Document" />
                     </TabViewItem.IconSource>

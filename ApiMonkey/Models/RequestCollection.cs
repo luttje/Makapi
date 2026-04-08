@@ -10,6 +10,9 @@ namespace ApiMonkey.Models;
 
 internal class RequestCollection : INotifyPropertyChanged
 {
+
+    public event PropertyChangedEventHandler? PropertyChanged;
+
     public string Id { get; private set; }
     public List<Request> Requests { get; private set; } = [];
 
@@ -32,9 +35,6 @@ internal class RequestCollection : INotifyPropertyChanged
         Id = Guid.NewGuid().ToString();
         Name = "Unnamed Collection";
     }
-
-
-    public event PropertyChangedEventHandler? PropertyChanged;
 
     protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
     {
