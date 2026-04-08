@@ -49,10 +49,11 @@ jobs:
         [IO.File]::WriteAllBytes("$certificatePath", $pfx_cert_byte)
 
     # Create the app package by building and packaging the project
-    # PublishProfile is cleared and PublishTrimmed disabled so the inner publish step
-    # spawned by GenerateAppxPackageOnBuild does not attempt IL trimming without SelfContained=true.
+    # PublishProfile is cleared and publish-time optimizations (trimming, ReadyToRun) are
+    # explicitly disabled, because the inner publish step spawned by GenerateAppxPackageOnBuild
+    # does not have access to the gitignored .pubxml files that normally configure these settings.
     - name: Create the app package
-      run: msbuild $env:Solution_Name /p:Configuration=$env:Configuration /p:Platform=$env:Platform /p:UapAppxPackageBuildMode=$env:Appx_Package_Build_Mode /p:AppxBundle=$env:Appx_Bundle /p:PackageCertificateKeyFile=GitHubActionsWorkflow.pfx /p:AppxPackageDir="$env:Appx_Package_Dir" /p:GenerateAppxPackageOnBuild=true /p:PublishProfile= /p:PublishTrimmed=false
+      run: msbuild $env:Solution_Name /p:Configuration=$env:Configuration /p:Platform=$env:Platform /p:UapAppxPackageBuildMode=$env:Appx_Package_Build_Mode /p:AppxBundle=$env:Appx_Bundle /p:PackageCertificateKeyFile=GitHubActionsWorkflow.pfx /p:AppxPackageDir="$env:Appx_Package_Dir" /p:GenerateAppxPackageOnBuild=true /p:PublishProfile= /p:PublishTrimmed=false /p:PublishReadyToRun=false /p:PublishSingleFile=false
       env:
         Appx_Bundle: Never
         Appx_Package_Build_Mode: SideloadOnly
