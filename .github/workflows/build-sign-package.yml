@@ -64,7 +64,7 @@ jobs:
       run: Remove-Item -path (Join-Path $env:GITHUB_WORKSPACE "GitHubActionsWorkflow.pfx")
 
     - name: Upload MSIX package
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: msix-${{ matrix.platform }}
         path: Packages\
