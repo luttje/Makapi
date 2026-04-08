@@ -5,12 +5,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ApiMonkey.ViewModels;
+namespace ApiMonkey.Pages;
 
 /// <summary>
 /// Pairs a path value with the parent ViewModel's commands,
-/// so DataTemplate buttons can bind commands via {x:Bind} without
-/// escaping the template scope with ElementName.
+/// so DataTemplate buttons can bind commands via {x:Bind}
 /// </summary>
 public sealed class RequestRootEntry(
     ChangingValueContainer container,

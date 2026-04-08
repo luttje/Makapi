@@ -9,7 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ApiMonkey.ViewModels;
+namespace ApiMonkey.Pages;
 
 internal partial class CollectionPageViewModel
 {

@@ -15,7 +15,7 @@ using System.Threading.Tasks;
 namespace ApiMonkey.Models;
 
 [ObservableObject]
-internal partial class RequestCollection
+public partial class RequestCollection
 {
     public const string EXTENSION = "apicollection.json";
 

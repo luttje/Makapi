@@ -5,6 +5,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:ApiMonkey"
     xmlns:models="using:ApiMonkey.Models"
+    xmlns:pages="using:ApiMonkey.Pages"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
@@ -28,7 +29,7 @@
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
 
-            <TextBox Text="{x:Bind CurrentRequest.Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+            <TextBox Text="{x:Bind ViewModel.Request.Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                      FontSize="24"
                      FontWeight="Black"
                      Background="Transparent"
@@ -60,7 +61,8 @@
                 </Grid.ColumnDefinitions>
 
                 <ComboBox x:Name="MethodComboBox" 
-                          SelectedItem="{x:Bind CurrentRequest.Method, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                          ItemsSource="{x:Bind ViewModel.Methods}"
+                          SelectedItem="{x:Bind ViewModel.Request.Method, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                           Grid.Column="0" 
                           Margin="5" 
                           Width="100" />
@@ -69,18 +71,18 @@
                          Grid.Column="1" 
                          Margin="5" 
                          PlaceholderText="https://api.example.com/endpoint"
-                         Text="{x:Bind CurrentRequest.Url, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                         Text="{x:Bind ViewModel.Request.Url, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
 
                 <Button x:Name="SendButton" 
                         Grid.Column="2" 
                         Margin="5" 
                         Content="Send" 
-                        Click="SendButton_Click" />
+                        Command="{x:Bind ViewModel.SendCommand}" />
             </Grid>
 
             <!-- Request Data -->
-            <TabView IsAddTabButtonVisible="False"
-                     x:Name="RequestTabView"
+            <TabView x:Name="RequestTabView"
+                     IsAddTabButtonVisible="False"
                      VerticalAlignment="Stretch"
                      SelectionChanged="RequestTabView_SelectionChanged"
                      Grid.Row="2">
@@ -99,9 +101,10 @@
 
                         <ScrollViewer>
                             <StackPanel Orientation="Vertical">
-                                <ListView x:Name="RequestHeadersListView">
+                                <ListView ItemsSource="{x:Bind ViewModel.RequestHeaders}"
+                                          SelectionMode="None">
                                     <ListView.ItemTemplate>
-                                        <DataTemplate x:DataType="models:Header">
+                                        <DataTemplate x:DataType="pages:HeaderEntry">
                                             <Grid Padding="5">
                                                 <Grid.ColumnDefinitions>
                                                     <ColumnDefinition Width="*" />
@@ -109,17 +112,19 @@
                                                     <ColumnDefinition Width="Auto" />
                                                 </Grid.ColumnDefinitions>
 
-                                                <TextBox Text="{x:Bind Name, Mode=TwoWay}" 
-                                                         FontWeight="Bold" 
-                                                         VerticalAlignment="Center"/>
+                                                <TextBox Text="{x:Bind Header.Name, Mode=TwoWay}"
+                                                     FontWeight="Bold"
+                                                     VerticalAlignment="Center" />
 
-                                                <TextBox Text="{x:Bind Value, Mode=TwoWay}" 
+                                                <TextBox Text="{x:Bind Header.Value, Mode=TwoWay}" 
                                                          Grid.Column="1" 
                                                          Margin="5,0,0,0"  />
 
-                                                <Button Grid.Column="2" 
-                                                        Margin="5,0,0,0" 
-                                                        Click="RemoveRequestHeaderButton_Click">
+                                                <!-- TODO: This doesn't work, use a wrapper around Header, like we did for RequestRootEntry -->
+                                                <Button Grid.Column="2"
+                                                        Margin="5,0,0,0"
+                                                        Command="{x:Bind Owner.RemoveRequestHeaderCommand}"
+                                                        CommandParameter="{x:Bind}">
                                                     <FontIcon Glyph="&#xE894;" />
                                                 </Button>
                                             </Grid>
@@ -129,11 +134,10 @@
                             </StackPanel>
                         </ScrollViewer>
 
-                        <Button x:Name="AddRequestHeaderButton" 
-                                Grid.Row="1"
+                        <Button Grid.Row="1"
                                 Margin="5"
-                                Content="Add Header" 
-                                Click="AddRequestHeaderButton_Click" />
+                                Content="Add Header"
+                                Command="{x:Bind ViewModel.AddRequestHeaderCommand}" />
                     </Grid>
                 </TabViewItem>
                 <TabViewItem Header="Body"
@@ -154,7 +158,7 @@
                                  AcceptsReturn="True" 
                                  TextWrapping="Wrap" 
                                  PlaceholderText="Request Body (for POST, PUT, PATCH)"
-                                 Text="{x:Bind CurrentRequest.Body, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                             Text="{x:Bind ViewModel.Request.Body, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                     </Grid>
                 </TabViewItem>
             </TabView>
@@ -191,12 +195,13 @@
                         <StackPanel Orientation="Horizontal"
                                     Spacing="5">
                             <TextBlock>Headers</TextBlock>
-                            <InfoBadge x:Name="ResponseHeadersInfoBadge"
-                                       Value="1" 
-                                       Visibility="Collapsed"/>
+                            <InfoBadge Value="{x:Bind ViewModel.ResponseHeaderCount, Mode=OneWay}"
+                                       Visibility="{x:Bind ViewModel.ResponseLoaded, Mode=OneWay,
+                                                    Converter={StaticResource BoolToVisibilityConverter}}" />
                         </StackPanel>
                     </TabViewItem.Header>
-                    <ListView x:Name="ResponseHeadersListView">
+                    <ListView ItemsSource="{x:Bind ViewModel.ResponseHeaders}"
+                              SelectionMode="None">
                         <ListView.ItemTemplate>
                             <DataTemplate x:DataType="models:Header">
                                 <Grid Padding="5">
@@ -229,9 +234,9 @@
                         <StackPanel Orientation="Horizontal"
                                     Spacing="5">
                             <TextBlock>Body</TextBlock>
-                            <InfoBadge x:Name="ResponseBodyInfoBadge"
-                                       Value="1" 
-                                       Visibility="Collapsed"/>
+                            <InfoBadge Value="{x:Bind ViewModel.ResponseBodyLength, Mode=OneWay}"
+                                       Visibility="{x:Bind ViewModel.ResponseLoaded, Mode=OneWay,
+                                                    Converter={StaticResource BoolToVisibilityConverter}}" />
                         </StackPanel>
                     </TabViewItem.Header>
                     <TextBox x:Name="ResponseTextBox" 
@@ -240,7 +245,8 @@
                              AcceptsReturn="True" 
                              TextWrapping="Wrap" 
                              IsReadOnly="True" 
-                             PlaceholderText="Response will appear here" />
+                             PlaceholderText="Response will appear here" 
+                             Text="{x:Bind ViewModel.ResponseBody, Mode=OneWay}" />
                 </TabViewItem>
             </TabView>
         </Grid>

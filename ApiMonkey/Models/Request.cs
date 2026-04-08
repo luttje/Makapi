@@ -12,14 +12,14 @@ using System.Text.Json.Serialization;
 
 namespace ApiMonkey.Models;
 
-internal enum TabState
+public enum TabState
 {
     Headers,
     Body,
 }
 
 [ObservableObject]
-internal partial class Request
+public partial class Request
 {
     public const string EXTENSION = "apirequest.json";
 

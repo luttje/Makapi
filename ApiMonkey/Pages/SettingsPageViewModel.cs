@@ -14,13 +14,13 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
 
-namespace ApiMonkey.ViewModels;
+namespace ApiMonkey.Pages;
 
 [ObservableObject]
 public partial class SettingsPageViewModel
 {
     [ObservableProperty]
-    public XamlRoot? XamlRoot { get; set; }
+    public partial XamlRoot? XamlRoot { get; set; }
 
     public ObservableCollection<RequestRootEntry> RequestRoots { get; }
 

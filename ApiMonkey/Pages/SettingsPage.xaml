@@ -7,7 +7,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:models="using:ApiMonkey.Models"
-    xmlns:viewmodels="using:ApiMonkey.ViewModels"
+    xmlns:pages="using:ApiMonkey.Pages"
     xmlns:toolkit="using:CommunityToolkit.WinUI.Controls"
     mc:Ignorable="d">
 
@@ -47,7 +47,7 @@
                                     </ListView.ItemContainerStyle>
 
                                     <ListView.ItemTemplate>
-                                        <DataTemplate x:DataType="viewmodels:RequestRootEntry">
+                                        <DataTemplate x:DataType="pages:RequestRootEntry">
                                             <Grid ColumnSpacing="8">
                                                 <Grid.ColumnDefinitions>
                                                     <ColumnDefinition Width="Auto" />
