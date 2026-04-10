@@ -1,6 +1,6 @@
 # 🐵 Makapi
 
-A lightweight Windows API client for developers who just want to send requests. No account, no cloud sync, no bloat. Built with WinUI 3, Makapi stores everything as plain JSON files on your disk, making it easy to version-control your requests alongside your code.
+A lightweight Windows API client for developers who just want to send requests. No account, no cloud sync, no bloat. Built with WinUI 3, Makapi stores everything as plain JSON files on your disk, making it easy to version control your requests alongside your code.
 
 <div align="center">
 
