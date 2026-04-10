@@ -1,8 +1,9 @@
-﻿using Makapi.Services;
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+using Makapi.Services;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading;
@@ -113,8 +114,28 @@ public partial class RequestCollection
         return collection;
     }
 
+    /// <summary>
+    /// Deletes the collection file, all associated request files, and removes the directory if it becomes empty.
+    /// </summary>
     internal void Delete()
     {
-        Directory.Delete(Path, true);
+        var collectionFilePath = System.IO.Path.Combine(Path, $"collection.{EXTENSION}");
+        File.Delete(collectionFilePath);
+
+        foreach (var requestFile in Directory.EnumerateFiles(Path, $"*.{Request.EXTENSION}"))
+        {
+            try
+            {
+                File.Delete(requestFile);
+            }
+            catch (DirectoryNotFoundException ex) { }
+            catch (IOException ex) { }
+            catch (UnauthorizedAccessException ex) { }
+        }
+
+        if (Directory.Exists(Path) && !Directory.EnumerateFileSystemEntries(Path).Any())
+        {
+            Directory.Delete(Path);
+        }
     }
 }
