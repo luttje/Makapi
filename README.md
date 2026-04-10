@@ -45,7 +45,7 @@ All data is saved as human-readable JSON files, designed to live alongside your 
             another-name-of-request.apirequest.json
 ```
 
-You can add any directory as a request root in **Settings**, so requests can live inside your project repositories.
+You can save collections and requests in any directory, so requests can live inside your (version controlled) project repositories.
 
 ## 📋 Requirements
 
