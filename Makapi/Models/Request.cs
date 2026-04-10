@@ -5,6 +5,7 @@ using System.ComponentModel;
 using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -24,14 +25,17 @@ public partial class Request
     public TabState CurrentRequestTab { get; set; } = TabState.Body;
     public TabState CurrentResponseTab { get; set; } = TabState.Body;
 
-    [JsonInclude]
-    public string Id { get; private set; }
+    [JsonIgnore] public string Id { get; private set; }
     [JsonIgnore] public string Path { get; private set; }
     [JsonIgnore] public RequestCollection? Collection { get; internal set; }
 
     [ObservableProperty]
     public partial string? Name { get; set; }
-    partial void OnNameChanged(string? value) => Save();
+    partial void OnNameChanged(string? value)
+    {
+        RenameFileToMatchName(value);
+        Save();
+    }
 
     [ObservableProperty]
     public partial string? Method { get; set; }
@@ -58,15 +62,16 @@ public partial class Request
     private CancellationTokenSource? _debounceCts;
     private const int DebounceDelayMs = 500;
 
+    [GeneratedRegex(@"[^a-z0-9]+")]
+    private static partial Regex KebabRegex();
+
     [JsonConstructor]
     private Request() { }
 
     public Request(RequestCollection? collection, string defaultRequestsPath)
     {
-        Id = Guid.NewGuid().ToString();
-        Path = collection?.Path != null
-            ? System.IO.Path.Combine(collection.Path, $"{Id}.{EXTENSION}")
-            : System.IO.Path.Combine(defaultRequestsPath, $"{Id}.{EXTENSION}");
+        var dir = collection?.Path ?? defaultRequestsPath;
+        Path = ResolveUniqueFilePath(dir, ToKebabCase("Unnamed Request"), EXTENSION);
         Name = "Unnamed Request";
         Collection = collection;
         Method = "GET";
@@ -85,6 +90,9 @@ public partial class Request
     /// </summary>
     private void MarkReady()
     {
+        if (string.IsNullOrEmpty(Id))
+            Id = Guid.NewGuid().ToString();
+
         Headers.CollectionChanged += (sender, args) =>
         {
             UpdateHeaderListeners();
@@ -184,6 +192,74 @@ public partial class Request
         request.MarkReady();
 
         return request;
+    }
+
+    public static string ToKebabCase(string? name)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+            return "unnamed-request";
+
+        var kebab = KebabRegex().Replace(name.Trim().ToLowerInvariant(), "-").Trim('-');
+        return string.IsNullOrEmpty(kebab) ? "unnamed-request" : kebab;
+    }
+
+    private static string ResolveUniqueFilePath(string directory, string baseName, string extension, string? excludePath = null)
+    {
+        Directory.CreateDirectory(directory);
+
+        var candidate = System.IO.Path.Combine(directory, $"{baseName}.{extension}");
+        if (!File.Exists(candidate) || string.Equals(candidate, excludePath, StringComparison.OrdinalIgnoreCase))
+            return candidate;
+
+        for (int i = 2; ; i++)
+        {
+            candidate = System.IO.Path.Combine(directory, $"{baseName}-{i}.{extension}");
+            if (!File.Exists(candidate) || string.Equals(candidate, excludePath, StringComparison.OrdinalIgnoreCase))
+                return candidate;
+        }
+    }
+
+    private void RenameFileToMatchName(string? newName)
+    {
+        if (!_ready)
+            return;
+
+        var dir = System.IO.Path.GetDirectoryName(Path);
+        if (dir is null)
+            return;
+
+        var newBaseName = ToKebabCase(newName);
+        var newPath = ResolveUniqueFilePath(dir, newBaseName, EXTENSION, excludePath: Path);
+
+        if (string.Equals(Path, newPath, StringComparison.OrdinalIgnoreCase))
+            return;
+
+        var oldPath = Path;
+        Path = newPath;
+
+        if (File.Exists(oldPath))
+            File.Move(oldPath, newPath, overwrite: false);
+    }
+
+    internal void MoveToDirectory(string newDirectory)
+    {
+        var oldPath = Path;
+        var fileName = System.IO.Path.GetFileName(oldPath);
+        var newPath = System.IO.Path.Combine(newDirectory, fileName);
+
+        if (string.Equals(oldPath, newPath, StringComparison.OrdinalIgnoreCase))
+            return;
+
+        Path = newPath;
+
+        _debounceCts?.Cancel();
+        _debounceCts = null;
+
+        _ = SaveAsync().ContinueWith(_ =>
+        {
+            if (File.Exists(oldPath))
+                File.Delete(oldPath);
+        });
     }
 
     internal void Delete()

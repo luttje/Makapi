@@ -4,6 +4,7 @@ using Makapi.Models;
 using Makapi.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
+using Microsoft.Windows.Storage.Pickers;
 using MonacoEditor.WinUI3;
 using System;
 using System.Collections.Generic;
@@ -25,6 +26,9 @@ public partial class WebRequestPageViewModel
 
     [ObservableProperty]
     public partial Request? Request { get; set; }
+
+    [ObservableProperty]
+    public partial XamlRoot? XamlRoot { get; set; }
 
     [ObservableProperty]
     public partial string ResponseBody { get; set; } = "";
@@ -150,6 +154,22 @@ public partial class WebRequestPageViewModel
         {
             IsSending = false;
         }
+    }
+
+    [RelayCommand]
+    private async Task ChangeSaveLocationAsync()
+    {
+        if (Request is null || XamlRoot is null)
+            return;
+
+        var picker = new FolderPicker(XamlRoot.ContentIslandEnvironment.AppWindowId);
+        picker.CommitButtonText = "Save Here";
+        picker.SuggestedStartLocation = PickerLocationId.DocumentsLibrary;
+        picker.ViewMode = PickerViewMode.List;
+
+        var folder = await picker.PickSingleFolderAsync();
+        if (folder != null)
+            Request.MoveToDirectory(folder.Path);
     }
 
     [RelayCommand]

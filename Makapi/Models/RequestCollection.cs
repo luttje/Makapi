@@ -15,8 +15,7 @@ public partial class RequestCollection
 {
     public const string EXTENSION = "apicollection.json";
 
-    [JsonInclude]
-    public string Id { get; private set; }
+    [JsonIgnore] public string Id { get; private set; }
     [JsonIgnore] public string Path { get; private set; }
     [JsonIgnore] public List<Request> Requests { get; private set; } = [];
 
@@ -38,7 +37,6 @@ public partial class RequestCollection
 
     public RequestCollection(string path, SettingsManager settingsManager)
     {
-        Id = Guid.NewGuid().ToString();
         Path = path;
         Name = "Unnamed Collection";
 
@@ -91,6 +89,9 @@ public partial class RequestCollection
     /// </summary>
     private void MarkReady()
     {
+        if (string.IsNullOrEmpty(Id))
+            Id = Guid.NewGuid().ToString();
+
         _ready = true;
     }
 

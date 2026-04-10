@@ -79,5 +79,28 @@
             <Frame x:Name="MainFrame" 
                    Grid.Row="1" />
         </NavigationView>
+
+        <!-- Loading overlay — visible during startup and refresh -->
+        <Grid x:Name="LoadingOverlay"
+              Grid.RowSpan="2"
+              Visibility="Visible"
+              Background="{ThemeResource SolidBackgroundFillColorBaseBrush}">
+            <StackPanel HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Spacing="12"
+                        MaxWidth="360"
+                        MinWidth="240">
+
+                <Image Source="/Assets/Icon.ico"
+                       MaxWidth="360"
+                       MinWidth="240"
+                       HorizontalAlignment="Center" />
+
+                <ProgressBar x:Name="LoadingProgressBar"
+                             IsIndeterminate="True"
+                             HorizontalAlignment="Stretch"
+                             Margin="0,4,0,0" />
+            </StackPanel>
+        </Grid>
     </Grid>
 </Window>

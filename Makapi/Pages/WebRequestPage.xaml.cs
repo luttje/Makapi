@@ -13,6 +13,7 @@ public sealed partial class WebRequestPage : Page
     public WebRequestPage()
     {
         InitializeComponent();
+        Loaded += (_, _) => ViewModel.XamlRoot = XamlRoot;
     }
 
     protected override void OnNavigatedTo(NavigationEventArgs e)

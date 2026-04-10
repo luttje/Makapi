@@ -13,6 +13,7 @@ using Microsoft.UI.Xaml.Media;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -26,6 +27,7 @@ namespace Makapi
         private bool _noAutoOpen = false;
         private readonly RequestStore _requestStore;
         private readonly IMessenger _messenger;
+        private readonly SettingsManager _settingsManager;
 
         public MainWindow()
         {
@@ -33,6 +35,7 @@ namespace Makapi
 
             _requestStore = App.Services.GetRequiredService<RequestStore>();
             _messenger = App.Services.GetRequiredService<IMessenger>();
+            _settingsManager = App.Services.GetRequiredService<SettingsManager>();
 
             _messenger.Register<SettingsChangedMessage>(this, async (r, m) => await RefreshMenuItemsAsync());
 
@@ -176,6 +179,8 @@ namespace Makapi
 
         public async Task RefreshMenuItemsAsync()
         {
+            LoadingOverlay.Visibility = Visibility.Visible;
+
             _menuItems.Clear();
             _collectionMenuItems.Clear();
             RequestsNavigationView.FooterMenuItems.Clear();
@@ -187,13 +192,18 @@ namespace Makapi
                 Icon = new SymbolIcon(Symbol.Add)
             });
 
-            var settingsManager = App.Services.GetRequiredService<SettingsManager>();
-
             _menuItems.Add(new NavigationViewItem
             {
                 Content = "New Collection",
-                Tag = new CollectionCreator(RootGrid.XamlRoot, _requestStore, settingsManager),
+                Tag = new CollectionCreator(RootGrid.XamlRoot, _requestStore, _settingsManager),
                 Icon = new SymbolIcon(Symbol.NewFolder)
+            });
+
+            _menuItems.Add(new NavigationViewItem
+            {
+                Content = "Open...",
+                Tag = new FileOpener(RootGrid.XamlRoot, OpenFileAndNavigateAsync),
+                Icon = new SymbolIcon(Symbol.OpenFile)
             });
 
             _menuItems.Add(new NavigationViewItemSeparator());
@@ -208,8 +218,46 @@ namespace Makapi
             });
 
             _noAutoOpen = true;
+            _requestStore.ClearAll();
+
+            // Yield so the UI message pump can render the overlay before blocking work begins
+            await Task.Yield();
+
             await _requestStore.LoadRequestsFromDiskAsync();
             _noAutoOpen = false;
+
+            LoadingOverlay.Visibility = Visibility.Collapsed;
+        }
+
+        private async Task OpenFileAndNavigateAsync(string? requestFilePath, string? collectionDirectory)
+        {
+            var directory = collectionDirectory ?? Path.GetDirectoryName(requestFilePath)!;
+
+            if (!_settingsManager.Settings.RequestRoots.Contains(directory))
+            {
+                _settingsManager.Settings.RequestRoots.Add(directory);
+                _settingsManager.Save();
+            }
+
+            await RefreshMenuItemsAsync();
+
+            NavigationViewItem? menuItem = null;
+
+            if (requestFilePath != null)
+            {
+                var request = _requestStore.GetRequestByFilePath(requestFilePath);
+                if (request != null)
+                    menuItem = FindMenuItemForRequest(request.Id);
+            }
+            else if (collectionDirectory != null)
+            {
+                var collection = _requestStore.GetCollectionByDirectory(collectionDirectory);
+                if (collection != null)
+                    menuItem = _collectionMenuItems.GetValueOrDefault(collection.Id);
+            }
+
+            if (menuItem != null)
+                OpenMenuItem(menuItem);
         }
 
         private void RequestsNavigationView_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)

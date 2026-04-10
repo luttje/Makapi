@@ -24,63 +24,6 @@
         <ScrollViewer Grid.Row="1">
             <StackPanel Orientation="Vertical"
                         MaxWidth="1064">
-                <toolkit:SettingsExpander Header="Request Save Locations"
-                                          Description="Determines where Makapi looks for saved request files.">
-                    <toolkit:SettingsExpander.HeaderIcon>
-                        <FontIcon Glyph="&#xED25;" />
-                    </toolkit:SettingsExpander.HeaderIcon>
-
-                    <toolkit:SettingsExpander.Items>
-                        <toolkit:SettingsCard ContentAlignment="Vertical"
-                                              HorizontalContentAlignment="Stretch">
-                            <StackPanel Spacing="8">
-                                <ListView x:Name="RequestRootsListView"
-                                          ItemsSource="{x:Bind ViewModel.RequestRoots}"
-                                          SelectionMode="None"
-                                          HorizontalAlignment="Stretch">
-                                    <ListView.ItemContainerStyle>
-                                        <Style TargetType="ListViewItem" BasedOn="{StaticResource DefaultListViewItemStyle}">
-                                            <Setter Property="Padding" Value="0" />
-                                            <Setter Property="Margin" Value="0,4,0,0" />
-                                            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
-                                        </Style>
-                                    </ListView.ItemContainerStyle>
-
-                                    <ListView.ItemTemplate>
-                                        <DataTemplate x:DataType="pages:RequestRootEntry">
-                                            <Grid ColumnSpacing="8">
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="Auto" />
-                                                    <ColumnDefinition Width="*" />
-                                                    <ColumnDefinition Width="Auto" />
-                                                </Grid.ColumnDefinitions>
-
-                                                <Button Grid.Column="0"
-                                                        Content="&#xE711;"
-                                                        FontFamily="{ThemeResource SymbolThemeFontFamily}"
-                                                        Command="{x:Bind Owner.RemovePathCommand}"
-                                                        CommandParameter="{x:Bind}" />
-
-                                                <TextBox Grid.Column="1"
-                                                         Text="{x:Bind Container.Value, Mode=TwoWay,
-                                                                UpdateSourceTrigger=PropertyChanged}"
-                                                         PlaceholderText="Enter path..." />
-
-                                                <Button Grid.Column="2"
-                                                        Content="Browse"
-                                                        Command="{x:Bind Owner.BrowseCommand}"
-                                                        CommandParameter="{x:Bind}" />
-                                            </Grid>
-                                        </DataTemplate>
-                                    </ListView.ItemTemplate>
-                                </ListView>
-
-                                <Button Content="Add path"
-                                        Command="{x:Bind ViewModel.AddPathCommand}" />
-                            </StackPanel>
-                        </toolkit:SettingsCard>
-                    </toolkit:SettingsExpander.Items>
-                </toolkit:SettingsExpander>
             </StackPanel>
         </ScrollViewer>
     </Grid>

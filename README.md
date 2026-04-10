@@ -26,7 +26,7 @@ A lightweight Windows API client for developers who just want to send requests. 
 - **Request body** — send raw body content (e.g. JSON)
 - **Response viewer** — inspect response headers and body side-by-side with the request
 - **Collections** — group related requests into folders; each collection maps to a directory on disk
-- **Auto-save** — all changes are debounced and saved automatically; no manual save step needed
+- **Auto-save** — all changes are saved automatically; no manual save step needed
 - **Search** — `Ctrl+F` opens a search that scores results by name, URL, body, and headers
 - **No login required** — fully offline, no account needed
 
@@ -38,11 +38,11 @@ All data is saved as human-readable JSON files, designed to live alongside your 
 %AppData%\Makapi\
     settings.json
     requests\
-        {id}.apirequest.json
+        name-of-request.apirequest.json
     collections\
         collection-#\
             collection.apicollection.json
-            {id}.apirequest.json
+            another-name-of-request.apirequest.json
 ```
 
 You can add any directory as a request root in **Settings**, so requests can live inside your project repositories.

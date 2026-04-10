@@ -33,21 +33,60 @@ public class RequestStore
 
         foreach (var root in roots)
         {
-            await LoadRequestsFromDirectoryAsync(root);
+            List<string> reqFiles;
+            List<string> colFiles;
+
+            if (Directory.Exists(root))
+            {
+                reqFiles = await Task.Run(() => SafeEnumerateFiles(root, $"*.{Request.EXTENSION}").ToList());
+                colFiles = await Task.Run(() => SafeEnumerateFiles(root, $"*.{RequestCollection.EXTENSION}").ToList());
+            }
+            else
+            {
+                reqFiles = [];
+                colFiles = [];
+            }
+
+            await LoadRequestsFromDirectoryAsync(root, reqFiles, colFiles);
         }
     }
 
-    private async Task LoadRequestsFromDirectoryAsync(string directory)
+    private static IEnumerable<string> SafeEnumerateFiles(string directory, string pattern)
     {
-        if (!Directory.Exists(directory))
-            return;
+        IEnumerable<string> files;
+        try
+        {
+            files = Directory.EnumerateFiles(directory, pattern);
+        }
+        catch (UnauthorizedAccessException) { yield break; }
+        catch (IOException) { yield break; }
 
-        var requestFiles = Directory.GetFiles(directory, $"*.{Request.EXTENSION}", SearchOption.AllDirectories);
+        foreach (var file in files)
+            yield return file;
 
-        var collectionInfos = Directory.GetFiles(directory, $"*.{RequestCollection.EXTENSION}", SearchOption.AllDirectories);
+        IEnumerable<string> subdirs;
+        try
+        {
+            subdirs = Directory.EnumerateDirectories(directory);
+        }
+        catch (UnauthorizedAccessException) { yield break; }
+        catch (IOException) { yield break; }
+
+        foreach (var subdir in subdirs)
+        {
+            foreach (var file in SafeEnumerateFiles(subdir, pattern))
+                yield return file;
+        }
+    }
+
+    private async Task LoadRequestsFromDirectoryAsync(
+        string directory,
+        List<string> requestFiles,
+        List<string> collectionInfoFiles)
+    {
         var collectionDirectories = new Dictionary<string, RequestCollection>();
 
-        foreach (var collectionInfoFile in collectionInfos)
+        foreach (var collectionInfoFile in collectionInfoFiles)
         {
             try
             {
@@ -203,5 +242,33 @@ public class RequestStore
             foreach (var request in collection.Requests)
                 yield return request;
         }
+    }
+
+    internal void ClearAll()
+    {
+        _rootRequests.Clear();
+        _collections.Clear();
+    }
+
+    internal Request? GetRequestByFilePath(string filePath)
+    {
+        var req = _rootRequests.FirstOrDefault(r =>
+            string.Equals(r.Path, filePath, StringComparison.OrdinalIgnoreCase));
+        if (req != null) return req;
+
+        foreach (var collection in _collections)
+        {
+            req = collection.Requests.FirstOrDefault(r =>
+                string.Equals(r.Path, filePath, StringComparison.OrdinalIgnoreCase));
+            if (req != null) return req;
+        }
+
+        return null;
+    }
+
+    internal RequestCollection? GetCollectionByDirectory(string directory)
+    {
+        return _collections.FirstOrDefault(c =>
+            string.Equals(c.Path, directory, StringComparison.OrdinalIgnoreCase));
     }
 }
