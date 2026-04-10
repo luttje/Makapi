@@ -91,7 +91,7 @@
                         MaxWidth="360"
                         MinWidth="240">
 
-                <Image Source="/Assets/Icon.ico"
+                <Image Source="/Assets/LoadingLogo.png"
                        MaxWidth="360"
                        MinWidth="240"
                        HorizontalAlignment="Center" />
