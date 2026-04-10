@@ -158,15 +158,27 @@
                     <Grid Grid.Row="1">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
 
                         <monaco:MonacoEditorControl x:Name="RequestBodyTextBox" 
-                                                    MonacoBaseUrl="monaco"
-                                                    Grid.Column="0" 
                                                     Margin="5" 
-                                                    EditorLanguage="json"
+                                                    EditorLanguage="{x:Bind ViewModel.SelectedRequestBodyType, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                                     EditorTheme="{x:Bind ViewModel.EditorTheme}"
+                                                    Options="{x:Bind ViewModel.EditorOptions}"
                                                     Text="{x:Bind ViewModel.Request.Body, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+                        <StackPanel Orientation="Horizontal"
+                                    HorizontalAlignment="Center"
+                                    Grid.Row="1"
+                                    Spacing="8"
+                                    Margin="5">
+                            <TextBlock VerticalAlignment="Center"
+                                       Text="Body Type:" />
+                            <ComboBox ItemsSource="{x:Bind ViewModel.BodyTypes}"
+                                      SelectedItem="{x:Bind ViewModel.SelectedRequestBodyType, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                      Width="150" />
+                        </StackPanel>
                     </Grid>
                 </TabViewItem>
             </TabView>
@@ -258,13 +270,31 @@
                         </StackPanel>
                     </TabViewItem.Header>
 
-                    <monaco:MonacoEditorControl x:Name="ResponseTextBox" 
-                                                MonacoBaseUrl="monaco"
-                                                Grid.Column="1" 
-                                                Margin="5" 
-                                                EditorLanguage="json"
-                                                EditorTheme="{x:Bind ViewModel.EditorTheme}"
-                                                Text="{x:Bind ViewModel.ResponseBody, Mode=OneWay}" />
+                    <Grid Grid.Row="1">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+
+                        <monaco:MonacoEditorControl x:Name="ResponseTextBox" 
+                                                    Margin="5" 
+                                                    EditorLanguage="{x:Bind ViewModel.SelectedResponseBodyType, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                    EditorTheme="{x:Bind ViewModel.EditorTheme}"
+                                                    Options="{x:Bind ViewModel.EditorOptions}"
+                                                    Text="{x:Bind ViewModel.ResponseBody, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+                        <StackPanel Orientation="Horizontal"
+                                    HorizontalAlignment="Center"
+                                    Grid.Row="1"
+                                    Spacing="8"
+                                    Margin="5">
+                            <TextBlock VerticalAlignment="Center"
+                                       Text="Body Type:" />
+                            <ComboBox ItemsSource="{x:Bind ViewModel.BodyTypes}"
+                                      SelectedItem="{x:Bind ViewModel.SelectedResponseBodyType, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                      Width="150" />
+                        </StackPanel>
+                    </Grid>
                 </TabViewItem>
             </TabView>
         </Grid>
