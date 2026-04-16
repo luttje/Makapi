@@ -1,31 +1,32 @@
-# Makapi Release Installation
+# Makapi Installation
 
-Makapi release packages are signed with a **self-signed certificate**.
-Because of that, Windows will only allow installation after you trust the included certificate.
+## 1. Download and Extract
 
-## 1. Unpack The Release ZIP
+Download the release ZIP and extract it to a folder of your choice
+(for example, `C:\Program Files\Makapi` or anywhere in your user folder).
 
-Download the release ZIP and extract it to a folder first.
+## 2. Run Makapi
 
-The extracted folder should include (among other files):
+Open the extracted folder and double-click `Makapi.exe`.
 
-- A `.cer` certificate file
-- A `.msix` package file
+### First launch: SmartScreen warning
 
-## 2. Install The Included Certificate (Required)
+Because Makapi is not signed with a commercial code-signing certificate,
+Windows SmartScreen may display a "Windows protected your PC" dialog the
+first time you run it. To continue:
 
-1. Double-click the `.cer` file, then click **Install Certificate**.
+1. Click **More info**.
+2. Click **Run anyway**.
 
-2. Select **Local Machine** (requires admin), then click **Next**.
+You only need to do this once.
 
-3. Choose **Place all certificates in the following store**, then click **Browse**.
+## 3. (Optional) Create a Shortcut
 
-4. Select **Trusted Root Certification Authorities**, click **OK**, then **Next**, then **Finish**.
+Right-click `Makapi.exe` → **Send to** → **Desktop (create shortcut)**,
+or pin it to your Start Menu for easier access.
 
-5. Click **Yes** on the UAC/security prompt.
+## Uninstalling
 
-## 3. Install The App
-
-After the certificate is installed, run the included `.msix` file.
-
-Without installing the certificate first, the MSIX installation will fail or be blocked by Windows trust checks.
+Delete the folder you extracted. Makapi stores its settings in
+`%APPDATA%\Makapi` — delete that folder too if you want to remove
+all traces.
