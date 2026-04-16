@@ -1,4 +1,5 @@
 ﻿using Makapi.Models;
+using System;
 using System.IO;
 using System.Text.Json;
 
@@ -81,11 +82,11 @@ namespace Makapi.Services
 
         private static string GetCreateSettingsDirectory()
         {
-            // We get the real path, so if we ever need to open the folder in explorer, it will show the true folder (instead of the virtualized one that Windows creates for the app)
-            var realRoaming = Windows.Storage.ApplicationData.Current.RoamingFolder.Path;
-            var settingsDir = Path.Combine(realRoaming, "Makapi");
+            var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+            // For roaming: SpecialFolder.ApplicationData (= %APPDATA%)
+            // For local:   SpecialFolder.LocalApplicationData (= %LOCALAPPDATA%)
+            var settingsDir = Path.Combine(appData, "Makapi");
             Directory.CreateDirectory(settingsDir);
-
             return settingsDir;
         }
     }

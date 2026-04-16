@@ -2,7 +2,7 @@ name: Create Release
 
 on:
   workflow_run:
-    workflows: [ "Build, Sign and Package MSIX app" ]
+    workflows: [ "Build and Package app" ]
     types: [ completed ]
 
 permissions:
@@ -35,8 +35,8 @@ jobs:
       run: |
         mkdir -p release-packages
         cd artifacts
-        zip -r "../release-packages/Makapi-x64.zip" "msix-x64/"
-        zip -r "../release-packages/Makapi-x86.zip" "msix-x86/"
+        zip -r "../release-packages/Makapi-x64.zip" "app-x64/"
+        zip -r "../release-packages/Makapi-x86.zip" "app-x86/"
 
     - name: Create GitHub Release
       uses: ncipollo/release-action@v1
