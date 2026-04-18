@@ -6,12 +6,12 @@ on:
     tags: [ 'v*.*.*' ]
     paths:
     - 'Makapi/**'
-    - '.github/workflows/build-sign-package.yml'
+    - '.github/workflows/build-package.yml'
   pull_request:
     branches: [ main ]
     paths:
     - 'Makapi/**'
-    - '.github/workflows/build-sign-package.yml'
+    - '.github/workflows/build-package.yml'
 
 jobs:
 
