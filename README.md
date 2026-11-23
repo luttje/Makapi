@@ -58,8 +58,8 @@ If you want to build or debug Makapi locally in Visual Studio, use the steps bel
 
 1. Ensure you have the prerequisites installed:
 
-    - Visual Studio 2022 (or newer) with the following components installed:
-      - .NET 9 SDK
+    - Visual Studio 2026 (or newer) with the following components installed:
+      - .NET 10 SDK
       - The `.NET desktop development` workload
       - The `WinUI application development` workload
 
@@ -75,4 +75,4 @@ If you want to build or debug Makapi locally in Visual Studio, use the steps bel
 
 6. Press `F5` to run with the debugger, or `Ctrl+F5` to launch without debugging.
 
-The project currently targets `net9.0-windows10.0.19041.0` and supports `x86`, `x64`, and `ARM64` builds.
+The project currently targets `net10.0-windows10.0.19041.0` and supports `x86`, `x64`, and `ARM64` builds.
