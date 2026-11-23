@@ -12,6 +12,7 @@
     <EnableMsixTooling>true</EnableMsixTooling>
     <LangVersion>preview</LangVersion>
     <Nullable>enable</Nullable>
+    <Version>0.4.1</Version>
   </PropertyGroup>
   <ItemGroup>
     <None Remove="Pages\CollectionPage.xaml" />
